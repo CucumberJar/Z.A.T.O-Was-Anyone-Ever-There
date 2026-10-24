@@ -1,0 +1,9 @@
+# Godot generated state
+.godot/
+.import/
+# Local / exported binaries
+build/
+*.tmp
+# Editor / OS
+.DS_Store
+Thumbs.db
