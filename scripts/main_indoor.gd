@@ -1,6 +1,7 @@
 extends Node2D
 
 const HUNTER_SCENE: PackedScene = preload("res://scenes/indoor_hunter.tscn")
+const SUPERCOMPUTER_SCENE: PackedScene = preload("res://scenes/minigames/supercomputer.tscn")
 const ITEM_FILES := {
 	"metal": "res://assets/indoor/metal.png",
 	"battery": "res://assets/indoor/battery.png",
@@ -71,6 +72,7 @@ var alarm_flash := 0.0
 var ventilation_fault := false
 var malfunction_hint := false
 var teleported := false
+var computer_open := false
 
 func _ready() -> void:
 	randomize()
@@ -92,6 +94,8 @@ func _ready() -> void:
 	_refresh()
 
 func _process(delta: float) -> void:
+	if computer_open:
+		return
 	radio_timer = maxf(radio_timer - delta, 0.0)
 	if radio_timer <= 0.0 and phase != "RESULT":
 		radio_label.text = ""
@@ -150,6 +154,8 @@ func _say(text: String, duration: float = 6.0) -> void:
 	radio_timer = duration
 
 func _unhandled_input(event: InputEvent) -> void:
+	if computer_open:
+		return
 	if event is InputEventKey:
 		var ke: InputEventKey = event as InputEventKey
 		if not ke.pressed or ke.echo:
@@ -214,13 +220,13 @@ func _interact() -> void:
 		"blue": _say("— СИНИЙ стол? Где берут таких альтернативно одарённых?\n— Я сказал: НА КРАСНОМ!", 6.0)
 		"red":
 			has_manual = true
-			_say("ИНСТРУКЦИЯ: при запуске выключить канал обратной связи.\nПожалуйста, прочтите это ДО катастрофы. Форма ознакомления потеряна.", 8.0)
+			_say("ИНСТРУКЦИЯ 12-Б: A=04, Б=07, В=02; выключить канал обратной связи.\nПожалуйста, прочтите это ДО катастрофы. Форма ознакомления потеряна.", 8.0)
 		"welder": _say("НАДПИСЬ НА СТЕКЛЕ: «Тебе открыты все двери».\nПо факту дверь заварена намертво.", 6.0)
 		"robot": _say("Кофейный робот / сварщик дверей. ИИ второго класса.\nВаш непосредственный руководитель.", 6.0)
 		"teleport": _say("— Телепортации не существует! Это декорация для инвесторов!", 5.0)
 		"super":
 			if phase == "INTRO":
-				_start_panic()
+				_open_supercomputer()
 			else:
 				pc_uses += 1
 				_say("Суперкомпьютер: %s. Мир отвечает на команды с задержкой." % ("КОД 0101" if phase == "DAY2" else "СИГНАЛ НЕИЗВЕСТЕН"), 5.0)
@@ -268,6 +274,36 @@ func _interact() -> void:
 				_say("СИСТЕМА КОД: отклонение исправлено.\nВ архиве Воркуты-5 за 1986 год обнаружена недоступная запись.", 7.0)
 			else:
 				_say("Архив Воркута-5 / 1986. Данные засекречены.\nВнимание: оператор отмечен как восприимчивый к Коду.", 7.0)
+
+func _open_supercomputer() -> void:
+	if computer_open:
+		return
+	computer_open = true
+	guard.active = false
+	$HUD.visible = false
+	$HUD.set_process_unhandled_key_input(false)
+	var terminal: Node = SUPERCOMPUTER_SCENE.instantiate()
+	add_child(terminal)
+	terminal.connect("experiment_failed", Callable(self, "_on_computer_failed"))
+	terminal.connect("cancelled", Callable(self, "_on_computer_cancelled"))
+	terminal.call("open", has_manual)
+
+func _close_computer_interface() -> void:
+	computer_open = false
+	guard.active = true
+	$HUD.visible = true
+	$HUD.set_process_unhandled_key_input(true)
+
+func _on_computer_cancelled() -> void:
+	_close_computer_interface()
+	_say("ПРОТОКОЛ ЗАПУСКА ОТМЕНЁН. ВЕДОМСТВО НИЧЕГО НЕ ЗАМЕТИЛО.", 4.0)
+
+func _on_computer_failed(feedback_was_enabled: bool) -> void:
+	_close_computer_interface()
+	pc_uses += 1
+	_start_panic()
+	if not feedback_was_enabled:
+		_say("99.99% / КОД ИЗМЕНИЛ ПАРАМЕТРЫ САМ.\nОбратная связь была отключена. Оператор не причастен. Вероятно.", 10.0)
 
 func _start_panic() -> void:
 	phase = "PANIC"
