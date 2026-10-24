@@ -12,7 +12,7 @@ config_version=5
 
 config/name="Z.A.T.O. - Was Anyone Ever There?"
 config/description="Varkuta-3, 1987. Inside CONTOUR, the Code answers those who can hear it."
-run/main_scene="res://scenes/main_indoor.tscn"
+run/main_scene="res://scenes/ui/start_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://assets/icon.png"
 
@@ -20,9 +20,17 @@ config/icon="res://assets/icon.png"
 
 window/size/viewport_width=640
 window/size/viewport_height=360
+window/size/mode=2
 window/size/window_width_override=1280
 window/size/window_height_override=720
-window/stretch/mode="viewport"
+window/stretch/mode="canvas_items"
+window/stretch/scale_mode="integer"
+
+[gui]
+
+theme/default_font_antialiasing=0
+theme/default_font_hinting=2
+theme/default_font_subpixel_positioning=0
 
 [input]
 

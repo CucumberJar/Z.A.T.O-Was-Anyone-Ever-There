@@ -1,0 +1,107 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/start_menu.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/ui/menu_dossier_clean.png" id="2_dossier"]
+
+[node name="StartMenu" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.015, 0.013, 0.012, 1)
+mouse_filter = 2
+
+[node name="Dossier" type="TextureRect" parent="."]
+offset_left = 145.0
+offset_top = 0.0
+offset_right = 495.0
+offset_bottom = 360.0
+texture = ExtResource("2_dossier")
+expand_mode = 1
+stretch_mode = 5
+texture_filter = 2
+mouse_filter = 2
+
+[node name="StartButton" type="Button" parent="."]
+offset_left = 261.0
+offset_top = 211.0
+offset_right = 408.0
+offset_bottom = 240.0
+focus_mode = 2
+text = "НАЧАТЬ"
+mouse_default_cursor_shape = 2
+tooltip_text = "Начать игру"
+
+[node name="SettingsButton" type="Button" parent="."]
+offset_left = 261.0
+offset_top = 247.0
+offset_right = 408.0
+offset_bottom = 276.0
+focus_mode = 2
+text = "НАСТРОЙКИ"
+mouse_default_cursor_shape = 2
+tooltip_text = "Настройки"
+
+[node name="ExitButton" type="Button" parent="."]
+offset_left = 261.0
+offset_top = 283.0
+offset_right = 408.0
+offset_bottom = 312.0
+focus_mode = 2
+text = "ВЫХОД"
+mouse_default_cursor_shape = 2
+tooltip_text = "Выход"
+
+[node name="StatusNote" type="Label" parent="."]
+offset_left = 410.0
+offset_top = 308.0
+offset_right = 624.0
+offset_bottom = 348.0
+horizontal_alignment = 2
+autowrap_mode = 2
+text = ""
+
+[node name="SettingsPanel" type="PanelContainer" parent="."]
+offset_left = 174.0
+offset_top = 70.0
+offset_right = 466.0
+offset_bottom = 301.0
+visible = false
+
+[node name="Settings" type="VBoxContainer" parent="SettingsPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Heading" type="Label" parent="SettingsPanel/Settings"]
+layout_mode = 2
+text = "ПАРАМЕТРЫ"
+
+[node name="VolumeText" type="Label" parent="SettingsPanel/Settings"]
+layout_mode = 2
+text = "ГРОМКОСТЬ"
+
+[node name="VolumeSlider" type="HSlider" parent="SettingsPanel/Settings"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+min_value = 0.0
+max_value = 1.0
+step = 0.05
+value = 0.8
+
+[node name="Fullscreen" type="CheckButton" parent="SettingsPanel/Settings"]
+layout_mode = 2
+text = "ПОЛНЫЙ ЭКРАН"
+
+[node name="Hint" type="Label" parent="SettingsPanel/Settings"]
+layout_mode = 2
+autowrap_mode = 2
+text = "Сменные документы остаются на объекте."
+
+[node name="Back" type="Button" parent="SettingsPanel/Settings"]
+layout_mode = 2
+text = "НАЗАД"
