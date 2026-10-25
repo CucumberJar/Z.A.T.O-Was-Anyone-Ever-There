@@ -53,10 +53,6 @@ texture_scale = 0.28
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1881986763]
 position = Vector2(0, -20)
-limit_left = 0
-limit_top = 0
-limit_right = 2304
-limit_bottom = 1440
 
 [node name="Flashlight" type="PointLight2D" parent="." unique_id=1459507131]
 color = Color(0.72, 0.83, 1, 1)

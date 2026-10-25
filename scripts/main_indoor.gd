@@ -51,6 +51,10 @@ const INTERACTABLES := [
 	{"name":"terminal", "pos":Vector2(1560, 456), "label":"Служебный терминал"},
 ]
 
+@export_group("Spawn Settings")
+@export var spawn_position := Vector2(175, 1250)
+@export var movement_limits := Rect2(0, 0, 2304, 1440)
+
 @onready var guard = $Guard
 @onready var map = $Indoor
 @onready var ambient: CanvasModulate = $Ambient
@@ -104,7 +108,7 @@ func _ready() -> void:
 	guard.health = 3
 	guard.ammo = 0
 	guard.weapon_enabled = false
-	guard.travel_to(Vector2(175, 1250), Rect2(0, 0, 2304, 1440))
+	guard.travel_to(spawn_position, movement_limits)
 	guard.get_node("Camera2D").zoom = Vector2(1, 1)
 	guard.active = false  # герой стоит в кабине, пока лифт не приедет
 	for info in ITEM_POSITIONS:

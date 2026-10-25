@@ -38,7 +38,7 @@ collision_mask = 0
 [node name="Lights" type="Node2D" parent="." unique_id=1106147979]
 
 [node name="Lamp00" type="PointLight2D" parent="Lights" unique_id=1212681641]
-position = Vector2(360, 360)
+position = Vector2(269, 302)
 color = Color(0.93725, 0.77647, 0.60784, 1)
 energy = 0.7
 texture = ExtResource("3_light")

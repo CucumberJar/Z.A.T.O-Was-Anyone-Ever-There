@@ -1,12 +1,21 @@
 [gd_scene format=3 uid="uid://dlsjkxwiu6y4g"]
 
 [ext_resource type="Script" uid="uid://btgcqjo61hvi5" path="res://scripts/ui/ingame_hud.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://cmvigjmgklb4w" path="res://assets/ui/hud_plate.png" id="2_hud"]
+[ext_resource type="Texture2D" uid="uid://igr2f8texl6y" path="res://assets/ui/healt2.png" id="3_28rw6"]
 [ext_resource type="Texture2D" uid="uid://cysmwm4pshd85" path="res://assets/ui/staff_portrait.png" id="3_staff"]
+[ext_resource type="Texture2D" uid="uid://drbplt16simb1" path="res://assets/ui/healt.png" id="4_cibmn"]
 [ext_resource type="Texture2D" uid="uid://ptm7p4vucwtm" path="res://assets/ui/gun_icon.png" id="4_gun"]
 [ext_resource type="Texture2D" uid="uid://dsp4sb1116au5" path="res://assets/ui/dialogue_plate.png" id="5_dialog"]
-[ext_resource type="Texture2D" uid="uid://udalqefd6xeu" path="res://assets/ui/supervisor_portrait.png" id="6_supervisor"]
 [ext_resource type="Texture2D" uid="uid://c1doufscq5kte" path="res://assets/ui/pause_notebook_clean_v060.png" id="7_pause"]
+[ext_resource type="FontFile" uid="uid://c35xg7jni7v5p" path="res://assets/fonts/PixeloidSans.ttf" id="7_twyrg"]
+[ext_resource type="Texture2D" uid="uid://dvflfc36rbhp1" path="res://assets/ui/dialogue.png" id="8_nioib"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qa521"]
+texture = ExtResource("8_nioib")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_mq6g4"]
+texture = ExtResource("8_nioib")
+region_rect = Rect2(11.092407, 10.950409, 185.725, 83.5462)
 
 [node name="HUD" type="CanvasLayer" unique_id=1364370532]
 script = ExtResource("1_script")
@@ -19,91 +28,73 @@ anchors_preset = 0
 [node name="Summary" type="Label" parent="Info" unique_id=217846595]
 layout_mode = 0
 
-[node name="HudPlate" type="TextureRect" parent="." unique_id=1587103572]
-texture_filter = 1
-offset_left = 13.0
-offset_top = 8.0
-offset_right = 232.0
-offset_bottom = 74.0
-mouse_filter = 2
-texture = ExtResource("2_hud")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="PlayerPortrait" type="TextureRect" parent="." unique_id=422656773]
-texture_filter = 1
-offset_left = 26.0
-offset_top = 16.0
-offset_right = 71.0
-offset_bottom = 68.0
-mouse_filter = 2
-texture = ExtResource("3_staff")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="HealthBack" type="ColorRect" parent="." unique_id=537498398]
-offset_left = 87.0
-offset_top = 21.0
-offset_right = 212.0
-offset_bottom = 28.0
-mouse_filter = 2
-color = Color(0.21, 0.16, 0.16, 1)
-
-[node name="HealthFill" type="ColorRect" parent="." unique_id=1389293140]
-offset_left = 88.0
-offset_top = 22.0
-offset_right = 211.0
-offset_bottom = 27.0
-mouse_filter = 2
-color = Color(0.74, 0.22, 0.26, 1)
-
 [node name="GunIcon" type="TextureRect" parent="." unique_id=1130684654]
 texture_filter = 1
-offset_left = 92.0
-offset_top = 37.0
-offset_right = 128.0
-offset_bottom = 65.0
+offset_left = 157.0
+offset_top = 10.0
+offset_right = 193.0
+offset_bottom = 38.0
 mouse_filter = 2
 texture = ExtResource("4_gun")
 expand_mode = 1
 stretch_mode = 5
 
+[node name="Health" type="TextureProgressBar" parent="." unique_id=311672053]
+offset_left = 11.0
+offset_top = 9.0
+offset_right = 161.0
+offset_bottom = 49.0
+max_value = 3.0
+value = 3.0
+rounded = true
+texture_under = ExtResource("3_28rw6")
+texture_progress = ExtResource("4_cibmn")
+texture_progress_offset = Vector2(0, 1)
+tint_under = Color(0.16062862, 0.16062862, 0.16062862, 0.5137255)
+tint_over = Color(0.66821647, 0.6682165, 0.66821647, 1)
+tint_progress = Color(0.7882353, 0.34901962, 0.49019608, 1)
+
 [node name="VitalPanel" type="Control" parent="." unique_id=1471205812]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 132.0
-offset_top = 37.0
-offset_right = 226.0
-offset_bottom = 69.0
+offset_left = 197.0
+offset_top = 11.0
+offset_right = 291.0
+offset_bottom = 43.0
 mouse_filter = 2
 
 [node name="Vitals" type="Label" parent="VitalPanel" unique_id=69367075]
-layout_mode = 0
-offset_top = 1.0
-offset_right = 93.0
-offset_bottom = 31.0
-text = "ПАТР 00"
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.096
+anchor_top = 0.094000004
+anchor_right = 0.71300006
+anchor_bottom = 0.81200004
+offset_left = -0.024000168
+offset_top = -0.007999897
+offset_right = -0.022003174
+offset_bottom = 0.01599884
+text = "00"
 
 [node name="PhasePanel" type="Control" parent="." unique_id=35541400]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 8.0
-offset_top = 6.0
-offset_right = 73.0
-offset_bottom = 24.0
+offset_left = 555.0
+offset_top = 63.0
+offset_right = 620.0
+offset_bottom = 81.0
 mouse_filter = 2
 
 [node name="Phase" type="Label" parent="PhasePanel" unique_id=1268297175]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 8.554001
-anchor_top = 3.3330002
-anchor_right = 9.508
-anchor_bottom = 4.611
-offset_left = -0.010070801
-offset_top = 0.005996704
-offset_right = -0.020019531
-offset_bottom = 0.0019989014
+anchor_left = 0.07700001
+anchor_right = 0.646
+anchor_bottom = 1.3330001
+offset_left = -0.0050005913
+offset_top = 1.0
+offset_right = 0.0099983215
+offset_bottom = 0.0059986115
 text = "1987"
 
 [node name="TargetPanel" type="PanelContainer" parent="." unique_id=1024302999]
@@ -139,49 +130,68 @@ mouse_filter = 2
 
 [node name="Paper" type="TextureRect" parent="RadioPanel" unique_id=70697073]
 texture_filter = 1
-layout_mode = 0
-offset_left = -20.0
-offset_top = 4.0
-offset_right = 577.0
-offset_bottom = 127.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.07700001
+anchor_top = -0.43600002
+anchor_right = 0.99700004
+anchor_bottom = 1.0380001
+offset_left = -0.10799408
+offset_top = -0.011997223
+offset_right = -0.21203613
+offset_bottom = -0.054016113
 mouse_filter = 2
 texture = ExtResource("5_dialog")
 expand_mode = 1
 
 [node name="Portrait" type="TextureRect" parent="RadioPanel" unique_id=27309309]
+modulate = Color(0.5705783, 0.57057834, 0.5705782, 1)
+z_index = -2
 texture_filter = 1
 layout_mode = 0
-offset_left = -3.0
-offset_top = 20.0
-offset_right = 73.0
-offset_bottom = 118.0
+offset_left = -36.0
+offset_top = -127.0
+offset_right = 90.0
+offset_bottom = 55.0
 mouse_filter = 2
-texture = ExtResource("6_supervisor")
+texture = ExtResource("3_staff")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="Radio" type="Label" parent="RadioPanel" unique_id=501612485]
 layout_mode = 0
-offset_left = 83.0
-offset_top = 26.0
-offset_right = 545.0
-offset_bottom = 109.0
+offset_left = -6.0
+offset_top = 39.0
+offset_right = 392.0
+offset_bottom = 93.0
 autowrap_mode = 2
 
 [node name="RadioTitle" type="Label" parent="RadioPanel" unique_id=1318955197]
-layout_mode = 0
-offset_left = 73.0
-offset_top = -17.0
-offset_right = 272.0
-offset_bottom = 6.0
+texture_filter = 1
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.12100001
+anchor_top = -0.128
+anchor_right = 0.36200002
+anchor_bottom = 0.15
+offset_left = -0.116004944
+offset_top = -3.9759998
+offset_right = 0.24798584
+offset_bottom = 0.049999237
+theme_override_fonts/font = ExtResource("7_twyrg")
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxTexture_qa521")
+theme_override_styles/focus = SubResource("StyleBoxTexture_mq6g4")
 text = "Кабан кабаныч"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Arrow" type="Label" parent="RadioPanel" unique_id=1757651554]
 layout_mode = 0
-offset_left = 546.0
-offset_top = 90.0
-offset_right = 562.0
-offset_bottom = 113.0
+offset_left = 526.0
+offset_top = 76.0
+offset_right = 542.0
+offset_bottom = 99.0
 text = "▼"
 
 [node name="Controls" type="Label" parent="." unique_id=91713102]
@@ -216,6 +226,8 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Dimmer" type="ColorRect" parent="PauseRoot" unique_id=684729980]
 layout_mode = 0
