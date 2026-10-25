@@ -1,70 +1,65 @@
+[gd_scene format=3 uid="uid://b601n774j0rs6"]
 
-[gd_scene load_steps=5 format=3]
-[ext_resource type="Script" path="res://scripts/guard.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/characters/guard_32x64_sheet.png" id="2_guard"]
-[ext_resource type="Texture2D" path="res://assets/characters/guard_32x64_normal.png" id="3_guard_normal"]
-[ext_resource type="Texture2D" path="res://assets/lighting/radial_light.png" id="4_light"]
+[ext_resource type="Script" uid="uid://dtf3wrmfcerng" path="res://scripts/guard.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://06gxlu18npmx" path="res://assets/characters/guard_32x64_sheet.png" id="2_guard"]
+[ext_resource type="Texture2D" uid="uid://b474hxtgadb3l" path="res://assets/characters/guard_32x64_normal.png" id="3_guard_normal"]
+[ext_resource type="Texture2D" uid="uid://cg1d80b230spg" path="res://assets/lighting/radial_light.png" id="4_light"]
+
+[sub_resource type="CircleShape2D" id="feet"]
+radius = 9.0
 
 [sub_resource type="CanvasTexture" id="character_tex"]
 diffuse_texture = ExtResource("2_guard")
 normal_texture = ExtResource("3_guard_normal")
 
-[sub_resource type="CircleShape2D" id="feet"]
-radius = 9.0
-
-[node name="Guard" type="CharacterBody2D"]
-collision_layer = 1
+[node name="Guard" type="CharacterBody2D" unique_id=16746039]
 collision_mask = 6
 script = ExtResource("1_script")
 
-[node name="Collision" type="CollisionShape2D" parent="."]
+[node name="Collision" type="CollisionShape2D" parent="." unique_id=46010839]
 position = Vector2(0, -4)
 shape = SubResource("feet")
 
-[node name="Shadow" type="Polygon2D" parent="."]
+[node name="Shadow" type="Polygon2D" parent="." unique_id=1848383]
 color = Color(0.05, 0.11, 0.14, 0.48)
 polygon = PackedVector2Array(-12, -1, 12, -1, 16, 5, -16, 5)
 
-[node name="Visual" type="Sprite2D" parent="."]
+[node name="Visual" type="Sprite2D" parent="." unique_id=1038386757]
+texture_filter = 1
 position = Vector2(0, -25)
+scale = Vector2(1.5, 1.5)
+texture = SubResource("character_tex")
 region_enabled = true
 region_rect = Rect2(0, 0, 32, 64)
-scale = Vector2(1.5, 1.5)
-texture_filter = 1
-texture = SubResource("character_tex")
 
-[node name="MuzzlePivot" type="Node2D" parent="."]
+[node name="MuzzlePivot" type="Node2D" parent="." unique_id=1183174260]
 position = Vector2(2, -6)
 
-[node name="MuzzleFlash" type="Polygon2D" parent="MuzzlePivot"]
+[node name="MuzzleFlash" type="Polygon2D" parent="MuzzlePivot" unique_id=465899887]
 visible = false
+z_index = 2
 color = Color(1, 0.87, 0.58, 1)
 polygon = PackedVector2Array(0, 0, 7, -3, 15, 0, 7, 3)
-z_index = 2
 
-[node name="MuzzleLight" type="PointLight2D" parent="."]
+[node name="MuzzleLight" type="PointLight2D" parent="." unique_id=675284803]
 position = Vector2(2, -6)
-texture = ExtResource("4_light")
-texture_scale = 0.28
 color = Color(1, 0.84, 0.62, 1)
 energy = 0.0
 blend_mode = 1
 range_z_min = -2
 range_z_max = 4
-shadow_enabled = false
+texture = ExtResource("4_light")
+texture_scale = 0.28
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1689200086]
+position = Vector2(0, -20)
 limit_left = 0
 limit_top = 0
 limit_right = 2304
 limit_bottom = 1440
-enabled = true
-position = Vector2(0, -20)
-position_smoothing_enabled = false
 
-[node name="Flashlight" type="PointLight2D" parent="."]
-texture = ExtResource("4_light")
-texture_scale = 0.75
+[node name="Flashlight" type="PointLight2D" parent="." unique_id=975359458]
 color = Color(0.72, 0.83, 1, 1)
 energy = 0.0
-shadow_enabled = false
+texture = ExtResource("4_light")
+texture_scale = 0.75

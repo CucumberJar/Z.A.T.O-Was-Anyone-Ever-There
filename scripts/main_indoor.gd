@@ -1,5 +1,7 @@
 extends Node2D
-
+@export_group("Spawn Settings")
+@export var spawn_position := Vector2(125, 1325)
+@export var movement_limits := Rect2(0, 0, 2304, 1440)
 const HUNTER_SCENE: PackedScene = preload("res://scenes/indoor_hunter.tscn")
 const SUPERCOMPUTER_SCENE: PackedScene = preload("res://scenes/minigames/supercomputer.tscn")
 const SCIENTIST_SCRIPT: GDScript = preload("res://scripts/scientist.gd")
@@ -37,7 +39,7 @@ const ITEM_POSITIONS := [
 	{"id":"J", "kind":"medkit", "pos":Vector2(1944, 840)},
 ]
 const INTERACTABLES := [
-	{"name":"elevator", "pos":Vector2(250, 1250), "label":"Выйти из лифта"},
+	{"name":"elevator", "pos":Vector2(250, 1300), "label":"Выйти из лифта"},
 	{"name":"blue", "pos":Vector2(360, 408), "label":"Синий стол"},
 	{"name":"red", "pos":Vector2(1032, 408), "label":"Красный стол / инструкция"},
 	{"name":"welder", "pos":Vector2(936, 600), "label":"Заваренная дверь"},
@@ -104,7 +106,7 @@ func _ready() -> void:
 	guard.health = 3
 	guard.ammo = 0
 	guard.weapon_enabled = false
-	guard.travel_to(Vector2(175, 1250), Rect2(0, 0, 2304, 1440))
+	guard.travel_to(spawn_position, movement_limits)
 	guard.get_node("Camera2D").zoom = Vector2(1, 1)
 	guard.active = false  # герой стоит в кабине, пока лифт не приедет
 	for info in ITEM_POSITIONS:
