@@ -1,0 +1,45 @@
+[gd_scene format=3 uid="uid://d4aqqsv2ea80m"]
+
+[ext_resource type="Script" uid="uid://c1l3o1ovxxhad" path="res://scripts/main_indoor.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://dpsfg4bocu3h3" path="res://scenes/indoor_institute.tscn" id="2_indoor"]
+[ext_resource type="PackedScene" uid="uid://dmlgjyqjfv2ck" path="res://scenes/guard.tscn" id="3_guard"]
+[ext_resource type="Texture2D" uid="uid://pxmjtgeubdlm" path="res://assets/indoor/elevator_door.png" id="4_elevator"]
+[ext_resource type="PackedScene" uid="uid://dlsjkxwiu6y4g" path="res://scenes/ui/ingame_hud.tscn" id="5_hud"]
+
+[sub_resource type="RectangleShape2D" id="elevator_collider"]
+size = Vector2(48, 90)
+
+[node name="Main" type="Node2D" unique_id=1080801256]
+script = ExtResource("1_main")
+
+[node name="Ambient" type="CanvasModulate" parent="." unique_id=852680792]
+color = Color(0.84, 0.88, 0.87, 1)
+
+[node name="Indoor" parent="." unique_id=682567753 instance=ExtResource("2_indoor")]
+
+[node name="ElevatorDoor" type="StaticBody2D" parent="." unique_id=1934736219]
+position = Vector2(263, 1246)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="ElevatorDoor" unique_id=1783156530]
+position = Vector2(2, 1)
+shape = SubResource("elevator_collider")
+
+[node name="Visual" type="Sprite2D" parent="ElevatorDoor" unique_id=1833899852]
+z_index = 4
+texture_filter = 1
+position = Vector2(1, 2.0000076)
+scale = Vector2(1, 1.0416669)
+texture = ExtResource("4_elevator")
+
+[node name="Collectibles" type="Node2D" parent="." unique_id=12800179]
+
+[node name="Barricades" type="Node2D" parent="." unique_id=821542207]
+
+[node name="Hunters" type="Node2D" parent="." unique_id=647629056]
+
+[node name="Guard" parent="." unique_id=2062303529 instance=ExtResource("3_guard")]
+position = Vector2(177, 1264)
+
+[node name="HUD" parent="." unique_id=81933879 instance=ExtResource("5_hud")]
