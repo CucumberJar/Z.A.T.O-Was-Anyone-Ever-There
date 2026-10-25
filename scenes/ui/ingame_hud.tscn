@@ -1,18 +1,361 @@
 [gd_scene format=3 uid="uid://dlsjkxwiu6y4g"]
 
-[ext_resource type="Script" uid="uid://bw3ew11fana0j" path="res://scripts/impact_effect.gd" id="1_cne07"]
-[ext_resource type="Texture2D" uid="uid://cg1d80b230spg" path="res://assets/lighting/radial_light.png" id="3_65qwq"]
+[ext_resource type="Script" uid="uid://btgcqjo61hvi5" path="res://scripts/ui/ingame_hud.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cmvigjmgklb4w" path="res://assets/ui/hud_plate.png" id="2_hud"]
+[ext_resource type="Texture2D" uid="uid://cysmwm4pshd85" path="res://assets/ui/staff_portrait.png" id="3_staff"]
+[ext_resource type="Texture2D" uid="uid://ptm7p4vucwtm" path="res://assets/ui/gun_icon.png" id="4_gun"]
+[ext_resource type="Texture2D" uid="uid://dsp4sb1116au5" path="res://assets/ui/dialogue_plate.png" id="5_dialog"]
+[ext_resource type="Texture2D" uid="uid://udalqefd6xeu" path="res://assets/ui/supervisor_portrait.png" id="6_supervisor"]
+[ext_resource type="Texture2D" uid="uid://c1doufscq5kte" path="res://assets/ui/pause_notebook_clean_v060.png" id="7_pause"]
 
-[node name="ImpactEffect" type="Node2D" unique_id=1218153157]
-script = ExtResource("1_cne07")
+[node name="HUD" type="CanvasLayer" unique_id=1364370532]
+script = ExtResource("1_script")
 
-[node name="Flash" type="Polygon2D" parent="." unique_id=675561297]
-color = Color(1, 0.86, 0.56, 1)
-polygon = PackedVector2Array(0, -6, 3, -2, 8, 0, 3, 2, 0, 6, -3, 2, -8, 0, -3, -2)
+[node name="Info" type="Control" parent="." unique_id=103834880]
+visible = false
+layout_mode = 3
+anchors_preset = 0
 
-[node name="Light" type="PointLight2D" parent="." unique_id=1052327523]
-color = Color(1, 0.82, 0.58, 1)
-energy = 0.95
-blend_mode = 1
-texture = ExtResource("3_65qwq")
-texture_scale = 0.48
+[node name="Summary" type="Label" parent="Info" unique_id=217846595]
+layout_mode = 0
+
+[node name="HudPlate" type="TextureRect" parent="." unique_id=1587103572]
+texture_filter = 1
+offset_left = 13.0
+offset_top = 8.0
+offset_right = 232.0
+offset_bottom = 74.0
+mouse_filter = 2
+texture = ExtResource("2_hud")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PlayerPortrait" type="TextureRect" parent="." unique_id=422656773]
+texture_filter = 1
+offset_left = 26.0
+offset_top = 16.0
+offset_right = 71.0
+offset_bottom = 68.0
+mouse_filter = 2
+texture = ExtResource("3_staff")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HealthBack" type="ColorRect" parent="." unique_id=537498398]
+offset_left = 87.0
+offset_top = 21.0
+offset_right = 212.0
+offset_bottom = 28.0
+mouse_filter = 2
+color = Color(0.21, 0.16, 0.16, 1)
+
+[node name="HealthFill" type="ColorRect" parent="." unique_id=1389293140]
+offset_left = 88.0
+offset_top = 22.0
+offset_right = 211.0
+offset_bottom = 27.0
+mouse_filter = 2
+color = Color(0.74, 0.22, 0.26, 1)
+
+[node name="GunIcon" type="TextureRect" parent="." unique_id=1130684654]
+texture_filter = 1
+offset_left = 92.0
+offset_top = 37.0
+offset_right = 128.0
+offset_bottom = 65.0
+mouse_filter = 2
+texture = ExtResource("4_gun")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VitalPanel" type="Control" parent="." unique_id=1471205812]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 132.0
+offset_top = 37.0
+offset_right = 226.0
+offset_bottom = 69.0
+mouse_filter = 2
+
+[node name="Vitals" type="Label" parent="VitalPanel" unique_id=69367075]
+layout_mode = 0
+offset_top = 1.0
+offset_right = 93.0
+offset_bottom = 31.0
+text = "ПАТР 00"
+
+[node name="PhasePanel" type="Control" parent="." unique_id=35541400]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 8.0
+offset_top = 6.0
+offset_right = 73.0
+offset_bottom = 24.0
+mouse_filter = 2
+
+[node name="Phase" type="Label" parent="PhasePanel" unique_id=1268297175]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 8.554001
+anchor_top = 3.3330002
+anchor_right = 9.508
+anchor_bottom = 4.611
+offset_left = -0.010070801
+offset_top = 0.005996704
+offset_right = -0.020019531
+offset_bottom = 0.0019989014
+text = "1987"
+
+[node name="TargetPanel" type="PanelContainer" parent="." unique_id=1024302999]
+offset_left = 406.0
+offset_top = 10.0
+offset_right = 630.0
+offset_bottom = 53.0
+mouse_filter = 2
+
+[node name="TargetTitle" type="Label" parent="." unique_id=571810034]
+offset_left = 412.0
+offset_top = 10.0
+offset_right = 649.0
+offset_bottom = 33.0
+text = "ЗАДАНИЕ / СЕКТОР «КОНТУР»"
+
+[node name="Target" type="Label" parent="." unique_id=1864397148]
+offset_left = 417.0
+offset_top = 29.0
+offset_right = 627.0
+offset_bottom = 52.0
+text = "Открыть лифт"
+autowrap_mode = 2
+
+[node name="RadioPanel" type="Control" parent="." unique_id=224615204]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 46.0
+offset_top = 229.0
+offset_right = 642.0
+offset_bottom = 362.0
+mouse_filter = 2
+
+[node name="Paper" type="TextureRect" parent="RadioPanel" unique_id=70697073]
+texture_filter = 1
+layout_mode = 0
+offset_left = -20.0
+offset_top = 4.0
+offset_right = 577.0
+offset_bottom = 127.0
+mouse_filter = 2
+texture = ExtResource("5_dialog")
+expand_mode = 1
+
+[node name="Portrait" type="TextureRect" parent="RadioPanel" unique_id=27309309]
+texture_filter = 1
+layout_mode = 0
+offset_left = -3.0
+offset_top = 20.0
+offset_right = 73.0
+offset_bottom = 118.0
+mouse_filter = 2
+texture = ExtResource("6_supervisor")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Radio" type="Label" parent="RadioPanel" unique_id=501612485]
+layout_mode = 0
+offset_left = 83.0
+offset_top = 26.0
+offset_right = 545.0
+offset_bottom = 109.0
+autowrap_mode = 2
+
+[node name="RadioTitle" type="Label" parent="RadioPanel" unique_id=1318955197]
+layout_mode = 0
+offset_left = 73.0
+offset_top = -17.0
+offset_right = 272.0
+offset_bottom = 6.0
+text = "Кабан кабаныч"
+
+[node name="Arrow" type="Label" parent="RadioPanel" unique_id=1757651554]
+layout_mode = 0
+offset_left = 546.0
+offset_top = 90.0
+offset_right = 562.0
+offset_bottom = 113.0
+text = "▼"
+
+[node name="Controls" type="Label" parent="." unique_id=91713102]
+visible = false
+offset_left = 253.0
+offset_top = 346.0
+offset_right = 619.0
+offset_bottom = 360.0
+text = "WASD  E  SPACE  ЛКМ  ESC"
+horizontal_alignment = 2
+
+[node name="MessagePanel" type="PanelContainer" parent="." unique_id=997002541]
+visible = false
+offset_left = 95.0
+offset_top = 102.0
+offset_right = 545.0
+offset_bottom = 259.0
+
+[node name="Message" type="Label" parent="." unique_id=1341705259]
+visible = false
+offset_left = 111.0
+offset_top = 115.0
+offset_right = 531.0
+offset_bottom = 240.0
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="PauseRoot" type="Control" parent="." unique_id=2107799205]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Dimmer" type="ColorRect" parent="PauseRoot" unique_id=684729980]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.018, 0.013, 0.012, 0.89)
+
+[node name="Notebook" type="TextureRect" parent="PauseRoot" unique_id=1188514566]
+texture_filter = 1
+layout_mode = 0
+offset_left = 33.0
+offset_top = 6.0
+offset_right = 608.0
+offset_bottom = 353.0
+mouse_filter = 2
+texture = ExtResource("7_pause")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Resume" type="Button" parent="PauseRoot" unique_id=1244600016]
+layout_mode = 0
+offset_left = 97.0
+offset_top = 87.0
+offset_right = 278.0
+offset_bottom = 117.0
+text = "ПРОДОЛЖИТЬ"
+
+[node name="Save" type="Button" parent="PauseRoot" unique_id=1749839316]
+layout_mode = 0
+offset_left = 97.0
+offset_top = 127.0
+offset_right = 278.0
+offset_bottom = 157.0
+text = "СОХРАНИТЬ"
+
+[node name="Load" type="Button" parent="PauseRoot" unique_id=1273344067]
+layout_mode = 0
+offset_left = 97.0
+offset_top = 167.0
+offset_right = 278.0
+offset_bottom = 197.0
+text = "ЗАГРУЗИТЬ"
+
+[node name="Settings" type="Button" parent="PauseRoot" unique_id=1455451954]
+layout_mode = 0
+offset_left = 97.0
+offset_top = 207.0
+offset_right = 278.0
+offset_bottom = 237.0
+text = "НАСТРОЙКИ"
+
+[node name="ToMenu" type="Button" parent="PauseRoot" unique_id=1928823151]
+layout_mode = 0
+offset_left = 97.0
+offset_top = 247.0
+offset_right = 278.0
+offset_bottom = 277.0
+text = "В ГЛАВНОЕ МЕНЮ"
+
+[node name="PauseHint" type="Label" parent="PauseRoot" unique_id=745477822]
+layout_mode = 0
+offset_left = 335.0
+offset_top = 265.0
+offset_right = 561.0
+offset_bottom = 302.0
+text = "ЛИЧНОЕ ДЕЛО / 1987"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="DossierPage" type="Control" parent="PauseRoot" unique_id=51645538]
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="BadgeHeader" type="Label" parent="PauseRoot/DossierPage" unique_id=1186342282]
+layout_mode = 0
+offset_left = 359.0
+offset_top = 116.0
+offset_right = 568.0
+offset_bottom = 134.0
+text = "З.А.Т.О. / ПРОПУСК № 317-Б"
+
+[node name="BadgeDetails" type="Label" parent="PauseRoot/DossierPage" unique_id=1404929243]
+layout_mode = 0
+offset_left = 360.0
+offset_top = 151.0
+offset_right = 511.0
+offset_bottom = 241.0
+text = "ОТДЕЛ: СЛУЖБА СБ
+ОБЪЕКТ: ВАРКУТА-3
+ГОД: 1987
+СТАТУС: НЕ ЧИСЛИТСЯ"
+
+[node name="Portrait" type="TextureRect" parent="PauseRoot/DossierPage" unique_id=1408339839]
+texture_filter = 1
+layout_mode = 0
+offset_left = 520.0
+offset_top = 152.0
+offset_right = 574.0
+offset_bottom = 222.0
+mouse_filter = 2
+texture = ExtResource("3_staff")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SettingsPage" type="Control" parent="PauseRoot" unique_id=1642980295]
+visible = false
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="SettingsTitle" type="Label" parent="PauseRoot/SettingsPage" unique_id=65514229]
+layout_mode = 0
+offset_left = 362.0
+offset_top = 124.0
+offset_right = 570.0
+offset_bottom = 147.0
+text = "ПАРАМЕТРЫ"
+
+[node name="VolumeTitle" type="Label" parent="PauseRoot/SettingsPage" unique_id=39539547]
+layout_mode = 0
+offset_left = 360.0
+offset_top = 158.0
+offset_right = 544.0
+offset_bottom = 178.0
+text = "ГРОМКОСТЬ"
+
+[node name="Volume" type="HSlider" parent="PauseRoot/SettingsPage" unique_id=233281703]
+layout_mode = 0
+offset_left = 362.0
+offset_top = 182.0
+offset_right = 535.0
+offset_bottom = 202.0
+max_value = 1.0
+step = 0.05
+value = 0.8
+
+[node name="Fullscreen" type="CheckButton" parent="PauseRoot/SettingsPage" unique_id=83930471]
+layout_mode = 0
+offset_left = 357.0
+offset_top = 213.0
+offset_right = 567.0
+offset_bottom = 243.0
+text = "ПОЛНЫЙ ЭКРАН"

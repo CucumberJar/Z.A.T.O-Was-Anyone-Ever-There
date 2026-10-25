@@ -1,3 +1,9 @@
-# Godot 4+ specific ignores
+# Godot generated state
 .godot/
-/android/
+.import/
+# Local / exported binaries
+build/
+*.tmp
+# Editor / OS
+.DS_Store
+Thumbs.db

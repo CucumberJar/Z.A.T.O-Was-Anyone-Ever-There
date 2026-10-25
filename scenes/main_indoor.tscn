@@ -1,18 +1,44 @@
-[gd_scene format=3 uid="uid://d4aqqsv2ea80m"]
+[gd_scene load_steps=6 format=3]
+[ext_resource type="Script" path="res://scripts/main_indoor.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/indoor_institute.tscn" id="2_indoor"]
+[ext_resource type="PackedScene" path="res://scenes/guard.tscn" id="3_guard"]
 
-[ext_resource type="Script" uid="uid://bw3ew11fana0j" path="res://scripts/impact_effect.gd" id="1_k7e3x"]
-[ext_resource type="Texture2D" uid="uid://cg1d80b230spg" path="res://assets/lighting/radial_light.png" id="3_0j3ff"]
+[ext_resource type="Texture2D" path="res://assets/indoor/elevator_door.png" id="4_elevator"]
 
-[node name="ImpactEffect" type="Node2D" unique_id=1218153157]
-script = ExtResource("1_k7e3x")
+[ext_resource type="PackedScene" path="res://scenes/ui/ingame_hud.tscn" id="5_hud"]
 
-[node name="Flash" type="Polygon2D" parent="." unique_id=675561297]
-color = Color(1, 0.86, 0.56, 1)
-polygon = PackedVector2Array(0, -6, 3, -2, 8, 0, 3, 2, 0, 6, -3, 2, -8, 0, -3, -2)
+[sub_resource type="RectangleShape2D" id="elevator_collider"]
+size = Vector2(48, 48)
 
-[node name="Light" type="PointLight2D" parent="." unique_id=1052327523]
-color = Color(1, 0.82, 0.58, 1)
-energy = 0.95
-blend_mode = 1
-texture = ExtResource("3_0j3ff")
-texture_scale = 0.48
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Ambient" type="CanvasModulate" parent="."]
+color = Color(0.84, 0.88, 0.87, 1)
+
+[node name="Indoor" parent="." instance=ExtResource("2_indoor")]
+
+[node name="ElevatorDoor" type="StaticBody2D" parent="."]
+position = Vector2(552, 1176)
+collision_layer = 4
+collision_mask = 0
+
+[node name="Collision" type="CollisionShape2D" parent="ElevatorDoor"]
+shape = SubResource("elevator_collider")
+
+[node name="Visual" type="Sprite2D" parent="ElevatorDoor"]
+texture = ExtResource("4_elevator")
+texture_filter = 1
+position = Vector2(0, -24)
+z_index = 4
+
+[node name="Collectibles" type="Node2D" parent="."]
+
+[node name="Barricades" type="Node2D" parent="."]
+
+[node name="Hunters" type="Node2D" parent="."]
+
+[node name="Guard" parent="." instance=ExtResource("3_guard")]
+position = Vector2(360, 1176)
+
+[node name="HUD" parent="." instance=ExtResource("5_hud")]
