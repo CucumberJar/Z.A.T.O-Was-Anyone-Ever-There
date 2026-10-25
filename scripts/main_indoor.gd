@@ -37,7 +37,7 @@ const ITEM_POSITIONS := [
 	{"id":"J", "kind":"medkit", "pos":Vector2(1944, 840)},
 ]
 const INTERACTABLES := [
-	{"name":"elevator", "pos":Vector2(250, 1250), "label":"Выйти из лифта"},
+	{"name":"elevator", "pos":Vector2(250, 1300), "label":"Выйти из лифта"},
 	{"name":"blue", "pos":Vector2(360, 408), "label":"Синий стол"},
 	{"name":"red", "pos":Vector2(1032, 408), "label":"Красный стол / инструкция"},
 	{"name":"welder", "pos":Vector2(936, 600), "label":"Заваренная дверь"},
