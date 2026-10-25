@@ -1,7 +1,5 @@
 extends Node2D
-@export_group("Spawn Settings")
-@export var spawn_position := Vector2(125, 1325)
-@export var movement_limits := Rect2(0, 0, 2304, 1440)
+
 const HUNTER_SCENE: PackedScene = preload("res://scenes/indoor_hunter.tscn")
 const SUPERCOMPUTER_SCENE: PackedScene = preload("res://scenes/minigames/supercomputer.tscn")
 const SCIENTIST_SCRIPT: GDScript = preload("res://scripts/scientist.gd")
@@ -52,6 +50,10 @@ const INTERACTABLES := [
 	{"name":"generator", "pos":Vector2(1944, 1176), "label":"Энергоузел / щиток"},
 	{"name":"terminal", "pos":Vector2(1560, 456), "label":"Служебный терминал"},
 ]
+
+@export_group("Spawn Settings")
+@export var spawn_position := Vector2(175, 1250)
+@export var movement_limits := Rect2(0, 0, 2304, 1440)
 
 @onready var guard = $Guard
 @onready var map = $Indoor

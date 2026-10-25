@@ -1,8 +1,8 @@
-[gd_scene format=3 uid="uid://b601n774j0rs6"]
+[gd_scene format=3 uid="uid://dmlgjyqjfv2ck"]
 
 [ext_resource type="Script" uid="uid://dtf3wrmfcerng" path="res://scripts/guard.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://06gxlu18npmx" path="res://assets/characters/guard_32x64_sheet.png" id="2_guard"]
-[ext_resource type="Texture2D" uid="uid://b474hxtgadb3l" path="res://assets/characters/guard_32x64_normal.png" id="3_guard_normal"]
+[ext_resource type="Texture2D" uid="uid://434rb8xn8wbq" path="res://assets/characters/guard_handdrawn_sheet.png" id="2_guard"]
+[ext_resource type="Texture2D" uid="uid://dkfhrl61vmtr6" path="res://assets/characters/guard_handdrawn_normal.png" id="3_guard_normal"]
 [ext_resource type="Texture2D" uid="uid://cg1d80b230spg" path="res://assets/lighting/radial_light.png" id="4_light"]
 
 [sub_resource type="CircleShape2D" id="feet"]
@@ -26,7 +26,7 @@ polygon = PackedVector2Array(-12, -1, 12, -1, 16, 5, -16, 5)
 
 [node name="Visual" type="Sprite2D" parent="." unique_id=1038386757]
 texture_filter = 1
-position = Vector2(0, -25)
+position = Vector2(0, -39)
 scale = Vector2(1.5, 1.5)
 texture = SubResource("character_tex")
 region_enabled = true

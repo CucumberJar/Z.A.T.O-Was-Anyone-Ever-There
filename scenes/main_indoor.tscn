@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://c1l3o1ovxxhad" path="res://scripts/main_indoor.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://dpsfg4bocu3h3" path="res://scenes/indoor_institute.tscn" id="2_indoor"]
-[ext_resource type="PackedScene" uid="uid://b601n774j0rs6" path="res://scenes/guard.tscn" id="3_guard"]
+[ext_resource type="PackedScene" uid="uid://dmlgjyqjfv2ck" path="res://scenes/guard.tscn" id="3_guard"]
 [ext_resource type="Texture2D" uid="uid://pxmjtgeubdlm" path="res://assets/indoor/elevator_door.png" id="4_elevator"]
 [ext_resource type="PackedScene" uid="uid://dlsjkxwiu6y4g" path="res://scenes/ui/ingame_hud.tscn" id="5_hud"]
 [ext_resource type="Script" uid="uid://bgyttj0tmle1u" path="res://scripts/dialogs/kpp.gd" id="6_xmjav"]
@@ -16,6 +16,7 @@ size = Vector2(430, 192.5)
 
 [node name="Main" type="Node2D" unique_id=1080801256]
 script = ExtResource("1_main")
+movement_limits = Rect2(0, 0, 10000, 10000)
 
 [node name="Ambient" type="CanvasModulate" parent="." unique_id=852680792]
 color = Color(0.84, 0.88, 0.87, 1)

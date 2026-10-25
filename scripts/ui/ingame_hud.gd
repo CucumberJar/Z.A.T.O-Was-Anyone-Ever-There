@@ -9,6 +9,7 @@ const SAVE_PATH := "user://zato_slot1.json"
 @onready var pause_root: Control = $PauseRoot
 @onready var settings_page: Control = $PauseRoot/SettingsPage
 @onready var dossier_page: Control = $PauseRoot/DossierPage
+@onready var hp_bar: TextureProgressBar = $Health
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -53,7 +54,8 @@ func _process(_delta: float) -> void:
 	var game: Variant = get_parent()
 	if game != null and is_instance_valid(game.guard):
 		var hp: int = clampi(game.guard.health, 0, 3)
-		$HealthFill.size.x = 123.0 * float(hp) / 3.0
+		if has_node("Health"):
+			$Health.value = hp
 
 func _update_dialogue_speaker() -> void:
 	var content: String = radio_label.text

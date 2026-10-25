@@ -1,8 +1,5 @@
 extends Node2D
 
-# EDITOR-AUTHORED MAP: TileMapLayer data is saved directly inside
-# scenes/indoor_institute.tscn. This script NEVER paints, clears or
-# generates tiles. It only builds gameplay navigation and collisions.
 const CELL: int = 48
 
 @onready var floor_tiles: TileMapLayer = $FloorTiles
