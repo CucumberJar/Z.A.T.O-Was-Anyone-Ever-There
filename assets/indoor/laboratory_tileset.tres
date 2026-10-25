@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://m6i1ylblb4js" path="res://assets/indoor/bunker_equipment_48.png" id="2_props"]
 [ext_resource type="Texture2D" uid="uid://0xf7ma3ymsul" path="res://assets/indoor/sprites1.png" id="3_3pl5c"]
 [ext_resource type="Texture2D" uid="uid://b8vdsi711rclb" path="res://assets/indoor/flow.png" id="3_7o5fo"]
+[ext_resource type="Texture2D" uid="uid://c546g38r5fcax" path="res://assets/indoor/Button1.png" id="4_gnhll"]
 
 [sub_resource type="TileSetAtlasSource" id="Atlas_Architecture"]
 texture = ExtResource("1_arch")
@@ -208,6 +209,16 @@ texture_region_size = Vector2i(48, 48)
 0:5/0 = 0
 3:4/0 = 0
 3:3/0 = 0
+4:4/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+5:4/0 = 0
+2:5/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_x8ewc"]
+texture = ExtResource("4_gnhll")
+texture_region_size = Vector2i(48, 48)
+0:0/0 = 0
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_6qnne"]
 resource_local_to_scene = true
@@ -231,3 +242,4 @@ sources/1 = SubResource("Atlas_Equipment")
 sources/5 = SubResource("TileSetAtlasSource_7o5fo")
 sources/6 = SubResource("TileSetAtlasSource_3pl5c")
 sources/2 = SubResource("TileSetAtlasSource_gnhll")
+sources/3 = SubResource("TileSetAtlasSource_x8ewc")

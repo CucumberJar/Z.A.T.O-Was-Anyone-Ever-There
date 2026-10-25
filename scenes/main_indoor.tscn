@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://dlsjkxwiu6y4g" path="res://scenes/ui/ingame_hud.tscn" id="5_hud"]
 [ext_resource type="Script" uid="uid://bgyttj0tmle1u" path="res://scripts/dialogs/kpp.gd" id="6_xmjav"]
 [ext_resource type="Script" uid="uid://doe3s3soegcd0" path="res://scripts/dialogs/kpp2.gd" id="7_0j3ff"]
+[ext_resource type="Texture2D" uid="uid://csr3pq3d6jqe0" path="res://assets/indoor/walle.png" id="8_2h22d"]
 
 [sub_resource type="RectangleShape2D" id="elevator_collider"]
 size = Vector2(48, 90)
@@ -49,7 +50,7 @@ texture = ExtResource("4_elevator")
 [node name="Hunters" type="Node2D" parent="." unique_id=647629056]
 
 [node name="Guard" parent="." unique_id=2062303529 instance=ExtResource("3_guard")]
-position = Vector2(122, 1325)
+position = Vector2(1272, 1949)
 
 [node name="HUD" parent="." unique_id=81933879 instance=ExtResource("5_hud")]
 
@@ -68,3 +69,7 @@ script = ExtResource("7_0j3ff")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="KPP2" unique_id=1840347380]
 position = Vector2(216.5, 18.5)
 shape = SubResource("RectangleShape2D_6xr82")
+
+[node name="Walle" type="Sprite2D" parent="." unique_id=2145192394]
+position = Vector2(1176, 725)
+texture = ExtResource("8_2h22d")
