@@ -2,6 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://baacc4qdcpbqg" path="res://assets/indoor/bunker_architecture_48.png" id="1_arch"]
 [ext_resource type="Texture2D" uid="uid://m6i1ylblb4js" path="res://assets/indoor/bunker_equipment_48.png" id="2_props"]
+[ext_resource type="Texture2D" uid="uid://b8vdsi711rclb" path="res://assets/indoor/flow.png" id="3_7o5fo"]
 
 [sub_resource type="TileSetAtlasSource" id="Atlas_Architecture"]
 texture = ExtResource("1_arch")
@@ -37,6 +38,7 @@ texture_region_size = Vector2i(48, 48)
 5:3/0 = 0
 6:3/0 = 0
 7:3/0 = 0
+7:3/0/physics_layer_0/polygon_0/points = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
 0:4/0 = 0
 1:4/0 = 0
 
@@ -136,8 +138,11 @@ texture_region_size = Vector2i(48, 48)
 0:11/0 = 0
 1:11/0 = 0
 3:11/0 = 0
+3:11/0/physics_layer_0/polygon_0/points = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
 4:11/0 = 0
+4:11/0/physics_layer_0/polygon_0/points = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
 5:11/0 = 0
+5:11/0/physics_layer_0/polygon_0/points = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
 7:11/0 = 0
 8:11/0 = 0
 9:11/0 = 0
@@ -146,7 +151,9 @@ texture_region_size = Vector2i(48, 48)
 12:11/0 = 0
 13:11/0 = 0
 3:12/0 = 0
+3:12/0/physics_layer_0/polygon_0/points = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
 4:12/0 = 0
+4:12/0/physics_layer_0/polygon_0/points = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
 5:12/0 = 0
 7:12/0 = 0
 10:12/0 = 0
@@ -154,7 +161,9 @@ texture_region_size = Vector2i(48, 48)
 12:12/0 = 0
 13:12/0 = 0
 3:13/0 = 0
+3:13/0/physics_layer_0/polygon_0/points = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
 4:13/0 = 0
+4:13/0/physics_layer_0/polygon_0/points = PackedVector2Array(-24, -24, 24, -24, 24, 24, -24, 24)
 5:13/0 = 0
 0:15/0 = 0
 1:15/0 = 0
@@ -165,8 +174,31 @@ texture_region_size = Vector2i(48, 48)
 0:17/0 = 0
 1:17/0 = 0
 2:17/0 = 0
+7:13/0 = 0
+8:12/0 = 0
+9:13/0 = 0
+8:13/0 = 0
+9:12/0 = 0
+10:13/0 = 0
+
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_6qnne"]
+resource_local_to_scene = true
+load_path = "res://.godot/imported/flower.png-02a8954d76046e9d8a3c06b31896f74b.ctex"
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_7o5fo"]
+texture = SubResource("CompressedTexture2D_6qnne")
+texture_region_size = Vector2i(48, 48)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_3pl5c"]
+texture = ExtResource("3_7o5fo")
+margins = Vector2i(0, 38)
+texture_region_size = Vector2i(48, 48)
+0:0/0 = 0
 
 [resource]
 tile_size = Vector2i(48, 48)
+physics_layer_0/collision_layer = 1
 sources/0 = SubResource("Atlas_Architecture")
 sources/1 = SubResource("Atlas_Equipment")
+sources/5 = SubResource("TileSetAtlasSource_7o5fo")
+sources/6 = SubResource("TileSetAtlasSource_3pl5c")
