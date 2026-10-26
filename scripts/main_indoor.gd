@@ -117,6 +117,7 @@ var scientists_panic_pending := false
 var scientists_node: Node2D
 var blackout_timer := 0.0
 var hunters_to_spawn := 0
+var electro_ambush_triggered := false
 var hunters_spawned := 0
 var hunter_spawn_timer := 0.0
 
@@ -370,8 +371,7 @@ func _interact() -> void:
 			_say(Dialogies.t("storage_door"),5.0)	
 		"electro":
 			if phase == "SORTIE":
-				_say(Dialogies.t("power_restored"), 5.0)
-				Quests.complete("sortie")
+				_trigger_electro_ambush()
 			elif phase == "DAY3":
 				quests["power"] = true
 				_say(Dialogies.t("power_restored"), 4.0)
@@ -663,6 +663,47 @@ func _start_sortie() -> void:
 	$Hunters.add_child(hunter)
 	hunter.global_position = map.nearest_walkable_point(Vector2(1944.0, 408.0))
 	_say("АВАРИЙНОЕ ПИТАНИЕ ОТКЛЮЧЕНО.\nДоберитесь до электрощита и восстановите свет. Аномалия уже в коридоре.", 8.0)
+
+
+
+# Сюжетная сцена: восстановление питания запускает захват игрока аномалией.
+# Срабатывает только при первом взаимодействии со щитком во время SORTIE.
+func _trigger_electro_ambush() -> void:
+	if phase != "SORTIE" or electro_ambush_triggered:
+		return
+	electro_ambush_triggered = true
+	guard.active = false
+	guard.velocity = Vector2.ZERO
+	computer_open = false
+	blackout_timer = maxf(blackout_timer, 1.8)
+	_clear_hunters()
+
+	var hunter = HUNTER_SCENE.instantiate()
+	hunter.player = guard
+	hunter.map = map
+	hunter.fortification_level = 0
+	hunter.face_player = true
+	$Hunters.add_child(hunter)
+	# The anomaly manifests at the electrical panel, so the key story beat
+	# cannot be skipped by pathfinding or by the NPC-targeting logic.
+	hunter.global_position = guard.global_position + Vector2(18.0, 0.0)
+	hunter.active = false
+	_say("ПИТАНИЕ ВОССТАНОВЛЕНО.\nЩелчок за спиной. Аномалия уже в электрощитовой.", 3.0)
+	if has_node("HUD"):
+		$HUD.visible = false
+	await get_tree().create_timer(0.9).timeout
+	if not is_inside_tree() or phase != "SORTIE":
+		return
+	if is_instance_valid(hunter):
+		hunter.queue_free()
+	# The capture is the cause of the blackout/glitch; the player comes to
+	# in the morning, with the power restored and the incident unresolved.
+	blackout_timer = 0.0
+	guard.active = true
+	if has_node("HUD"):
+		$HUD.visible = true
+	_say("СИГНАЛ ПОТЕРЯН.\nВы приходите в себя утром. На записи камеры — только помехи.", 8.0)
+	Quests.complete("sortie")
 
 
 func _on_sortie_timeout() -> void:
