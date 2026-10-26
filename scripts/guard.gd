@@ -151,7 +151,7 @@ func _shoot(direction_index: int) -> void:
 	var projectile = PROJECTILE.instantiate()
 	projectile.direction = facing
 	get_tree().current_scene.add_child(projectile)
-	projectile.global_position = global_position + MUZZLE_OFFSETS[direction_index] + facing * 4.0
+	projectile.global_position = global_position + MUZZLE_OFFSETS[direction_index] * 5.0 + facing * 4.0
 	muzzle_flash_timer = 0.06
 	shake_timer = 0.08
 	shake_strength = 1.8
