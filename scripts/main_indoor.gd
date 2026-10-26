@@ -362,6 +362,9 @@ func _interact() -> void:
 			Quests.complete("manual")
 		"storage_table":
 			_say(Dialogies.t("storage_door"),5.0)	
+		"energo":
+			_say(Dialogies.t("Энергия восстановлена"),5.0)	
+			Quests.complete("sortie")	
 		"termenal":
 			_open_supercomputer()
 			Quests.complete("computer")
@@ -692,10 +695,9 @@ func _on_quest_completed(id: String) -> void:
 			Quests.start("night")	
 		"night":
 			Quests.start("sortie")
-			_start_day2()
 		"sortie":
+			_start_day2()
 			Quests.start("fort")
-			_start_sortie()
 		"fort":
 			Quests.start("hunt")
 		"hunt":
