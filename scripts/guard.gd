@@ -60,10 +60,14 @@ func _physics_process(delta: float) -> void:
 	muzzle_flash_timer = maxf(0.0, muzzle_flash_timer - delta)
 	var direction: Vector2 = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	var aim: Vector2 = get_global_mouse_position() - global_position
-	if weapon_enabled and aim.length_squared() > 36.0:
+	# While walking, orient the body in the travel direction so the run cycle never
+	# looks like backward movement. Aim toward the cursor only when standing still
+	# or actively firing; projectile direction remains aligned with the weapon.
+	var firing: bool = weapon_enabled and ammo > 0 and Input.is_action_pressed("fire")
+	if direction.length_squared() > 0.01 and not firing:
+		facing = direction.normalized()
+	elif weapon_enabled and aim.length_squared() > 36.0:
 		facing = aim.normalized()
-	elif direction != Vector2.ZERO:
-		facing = direction
 	if Input.is_action_just_pressed("dash") and dash_cooldown <= 0.0:
 		dash_direction = direction if direction.length_squared() > 0.0 else facing
 		dash_time = DASH_DURATION
