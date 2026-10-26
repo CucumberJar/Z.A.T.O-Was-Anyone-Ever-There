@@ -128,7 +128,7 @@ shape = SubResource("RectangleShape2D_njsjv")
 
 [node name="Electro" type="Area2D" parent="Electro" unique_id=1634693118]
 script = ExtResource("4_u2mf2")
-action = "electro"
+action = "reset"
 label = "Электрощиток"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Electro/Electro" unique_id=1993158182]
