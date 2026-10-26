@@ -294,3 +294,4 @@ func take_damage(_amount: int, _from_direction: Vector2 = Vector2.ZERO) -> void:
 	# The experiment is dangerous: bullets stun but cannot kill the threat.
 	stunned = 0.75
 	flash_timer = 0.18
+	print("Мне больно!!")

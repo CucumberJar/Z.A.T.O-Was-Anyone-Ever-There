@@ -2,7 +2,6 @@
 
 [ext_resource type="Texture2D" uid="uid://l8e7ovvh8ek4" path="res://assets/indoor/Electro.png" id="1_3pl5c"]
 [ext_resource type="Texture2D" uid="uid://o7oevniui1uq" path="res://assets/indoor/sprites1.png" id="3_3pl5c"]
-[ext_resource type="Texture2D" uid="uid://b8vdsi711rclb" path="res://assets/indoor/flow.png" id="3_7o5fo"]
 [ext_resource type="Texture2D" uid="uid://c546g38r5fcax" path="res://assets/indoor/Button1.png" id="4_gnhll"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_o2ypi"]
@@ -265,23 +264,10 @@ texture_region_size = Vector2i(48, 48)
 9:10/0 = 0
 6:10/0 = 0
 7:10/0 = 0
+0:11/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_x8ewc"]
 texture = ExtResource("4_gnhll")
-texture_region_size = Vector2i(48, 48)
-0:0/0 = 0
-
-[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_6qnne"]
-resource_local_to_scene = true
-load_path = "res://.godot/imported/flower.png-02a8954d76046e9d8a3c06b31896f74b.ctex"
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_7o5fo"]
-texture = SubResource("CompressedTexture2D_6qnne")
-texture_region_size = Vector2i(48, 48)
-
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_3pl5c"]
-texture = ExtResource("3_7o5fo")
-margins = Vector2i(0, 38)
 texture_region_size = Vector2i(48, 48)
 0:0/0 = 0
 
@@ -289,8 +275,6 @@ texture_region_size = Vector2i(48, 48)
 tile_size = Vector2i(48, 48)
 physics_layer_0/collision_layer = 6
 physics_layer_0/collision_mask = 128
-sources/5 = SubResource("TileSetAtlasSource_7o5fo")
-sources/6 = SubResource("TileSetAtlasSource_3pl5c")
 sources/2 = SubResource("TileSetAtlasSource_gnhll")
 sources/3 = SubResource("TileSetAtlasSource_x8ewc")
 sources/0 = SubResource("TileSetAtlasSource_o2ypi")
