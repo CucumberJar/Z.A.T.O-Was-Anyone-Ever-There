@@ -19,6 +19,12 @@ size = Vector2(84, 155)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ahg6a"]
 size = Vector2(194, 300)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_njsjv"]
+size = Vector2(382, 162)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6xr82"]
+size = Vector2(573, 126.5)
+
 [node name="Main" type="Node2D" unique_id=1080801256]
 script = ExtResource("1_main")
 cabin_spawn_position = Vector2(5058, 545)
@@ -114,3 +120,26 @@ shape = SubResource("RectangleShape2D_ahg6a")
 [node name="Sprite2D" type="Sprite2D" parent="Area2D/CollisionShape2D" unique_id=1800030017]
 position = Vector2(-76, -147)
 texture = ExtResource("9_u2mf2")
+
+[node name="Electro" type="Area2D" parent="." unique_id=832733005]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Electro" unique_id=785658958]
+shape = SubResource("RectangleShape2D_njsjv")
+
+[node name="Electro" type="Area2D" parent="Electro" unique_id=1634693118]
+script = ExtResource("4_u2mf2")
+action = "electro"
+label = "Электрощиток"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Electro/Electro" unique_id=1993158182]
+position = Vector2(2080, 273)
+shape = SubResource("RectangleShape2D_njsjv")
+
+[node name="Computer" type="Area2D" parent="Electro" unique_id=1082949013]
+script = ExtResource("4_u2mf2")
+action = "termenal"
+label = "Обычный суперкомпьютер"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Electro/Computer" unique_id=215233569]
+position = Vector2(1215.5, 1890.75)
+shape = SubResource("RectangleShape2D_6xr82")
