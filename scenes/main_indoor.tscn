@@ -4,17 +4,13 @@
 [ext_resource type="PackedScene" uid="uid://dpsfg4bocu3h3" path="res://scenes/indoor_institute.tscn" id="2_indoor"]
 [ext_resource type="PackedScene" uid="uid://dmlgjyqjfv2ck" path="res://scenes/guard.tscn" id="3_guard"]
 [ext_resource type="Texture2D" uid="uid://pxmjtgeubdlm" path="res://assets/indoor/elevator_door.png" id="4_elevator"]
-[ext_resource type="Script" uid="uid://6q11b6hxijla" path="res://scripts/interactable.gd" id="4_u2mf2"]
 [ext_resource type="PackedScene" uid="uid://dlsjkxwiu6y4g" path="res://scenes/ui/ingame_hud.tscn" id="5_hud"]
 [ext_resource type="Script" uid="uid://bgyttj0tmle1u" path="res://scripts/dialogs/kpp.gd" id="6_xmjav"]
 [ext_resource type="Script" uid="uid://doe3s3soegcd0" path="res://scripts/dialogs/kpp2.gd" id="7_0j3ff"]
-[ext_resource type="Texture2D" uid="uid://csr3pq3d6jqe0" path="res://assets/indoor/walle.png" id="8_2h22d"]
+[ext_resource type="PackedScene" uid="uid://cegp84k612a3b" path="res://scenes/fog_of_war.tscn" id="8_2h22d"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_nh84e"]
-size = Vector2(79, 96)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_p04rc"]
-size = Vector2(46, 95)
+[sub_resource type="RectangleShape2D" id="elevator_collider"]
+size = Vector2(42, 90)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_njsjv"]
 size = Vector2(287.5, 92.875)
@@ -24,38 +20,34 @@ size = Vector2(431, 189)
 
 [node name="Main" type="Node2D" unique_id=1080801256]
 script = ExtResource("1_main")
-movement_limits = Rect2(0, 0, 10000, 10000)
+cabin_spawn_position = Vector2(5058, 545)
+cabin_door_position = Vector2(5058, 665)
+institute_arrival_position = Vector2(423, 384)
+elevator_ambient_color = Color(0.8694869, 0.8954797, 0.9215471, 1)
+elevator_camera_shake = 0.8
+elevator_fade_duration = 0.4
 
 [node name="Ambient" type="CanvasModulate" parent="." unique_id=852680792]
 color = Color(0.84, 0.88, 0.87, 1)
 
 [node name="Indoor" parent="." unique_id=682567753 instance=ExtResource("2_indoor")]
+position = Vector2(64, 15)
 
 [node name="ElevatorDoor" type="StaticBody2D" parent="." unique_id=1934736219]
 position = Vector2(263, 1246)
 collision_layer = 4
 collision_mask = 0
 
+[node name="Collision" type="CollisionShape2D" parent="ElevatorDoor" unique_id=1783156530]
+position = Vector2(-1, 52)
+shape = SubResource("elevator_collider")
+
 [node name="Visual" type="Sprite2D" parent="ElevatorDoor" unique_id=1833899852]
 z_index = 4
 texture_filter = 1
-position = Vector2(1, 50.000008)
+position = Vector2(-1, 47.000008)
 scale = Vector2(1, 1.0416669)
 texture = ExtResource("4_elevator")
-
-[node name="Elevator2" type="Area2D" parent="ElevatorDoor" unique_id=1484809151]
-position = Vector2(-3, 10)
-script = ExtResource("4_u2mf2")
-action = "elevator"
-label = "Выйти из лифта"
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ElevatorDoor/Elevator2" unique_id=850942264]
-position = Vector2(-12.5, 40)
-shape = SubResource("RectangleShape2D_nh84e")
-
-[node name="Collision" type="CollisionShape2D" parent="ElevatorDoor" unique_id=1417664259]
-position = Vector2(1, 49.5)
-shape = SubResource("RectangleShape2D_p04rc")
 
 [node name="Collectibles" type="Node2D" parent="." unique_id=12800179]
 
@@ -64,7 +56,7 @@ shape = SubResource("RectangleShape2D_p04rc")
 [node name="Hunters" type="Node2D" parent="." unique_id=647629056]
 
 [node name="Guard" parent="." unique_id=2062303529 instance=ExtResource("3_guard")]
-position = Vector2(1272, 1949)
+position = Vector2(140, 1331)
 
 [node name="HUD" parent="." unique_id=81933879 instance=ExtResource("5_hud")]
 
@@ -84,6 +76,23 @@ script = ExtResource("7_0j3ff")
 position = Vector2(216.5, 18.5)
 shape = SubResource("RectangleShape2D_6xr82")
 
-[node name="Walle" type="Sprite2D" parent="." unique_id=2145192394]
-position = Vector2(1176, 725)
-texture = ExtResource("8_2h22d")
+[node name="FogOfWar" parent="." unique_id=937794744 instance=ExtResource("8_2h22d")]
+night_radius = 330.0
+elevator_radius = 200.0
+near_dim = 0.1
+middle_dim = 0.24
+far_dim = 0.31
+edge_dim = 0.63
+wall_reveal_depth = 128.0
+ray_update_seconds = 0.04
+
+[node name="MARKER" type="Node" parent="." unique_id=168458533]
+
+[node name="start" type="Marker2D" parent="MARKER" unique_id=1860781251]
+position = Vector2(5058, 545)
+
+[node name="dwer" type="Marker2D" parent="MARKER" unique_id=1799982183]
+position = Vector2(5058, 665)
+
+[node name="wishod" type="Marker2D" parent="MARKER" unique_id=1962913821]
+position = Vector2(423, 384)
