@@ -375,3 +375,6 @@ func _die() -> void:
 	var fade: Tween = create_tween()
 	fade.tween_property(visual, "modulate:a", 0.0, 0.6)
 	fade.tween_callback(queue_free)
+=======
+	print("Мне больно!!")
+>>>>>>> 868e56671d5b9af9c1a032f65511b95c06ed1c8f

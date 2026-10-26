@@ -4,12 +4,12 @@
 [ext_resource type="Texture2D" uid="uid://07x7ht1fj6my" path="res://assets/characters/garbage.png" id="2_gy16c"]
 
 [sub_resource type="CircleShape2D" id="collider"]
-radius = 11.0
+radius = 50.447994
 
 [node name="Hunter" type="CharacterBody2D" unique_id=973668297]
 z_index = 2
 collision_layer = 2
-collision_mask = 4098
+collision_mask = 4102
 script = ExtResource("1_script")
 sprite_glitch_strength = 1.0
 sprite_glitch_rate = 30.0
