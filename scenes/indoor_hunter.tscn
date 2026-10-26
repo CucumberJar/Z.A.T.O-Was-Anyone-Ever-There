@@ -1,21 +1,22 @@
-[gd_scene load_steps=4 format=3]
-[ext_resource type="Script" path="res://scripts/indoor_hunter.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/characters/anomaly_32_sheet.png" id="2_sprite"]
+[gd_scene format=3 uid="uid://bvq5mqlr3yb3u"]
+
+[ext_resource type="Script" uid="uid://cxt3g68jvyic" path="res://scripts/indoor_hunter.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://y0f76f73nlq8" path="res://assets/characters/anomaly_32_sheet.png" id="2_sprite"]
 
 [sub_resource type="CircleShape2D" id="collider"]
 radius = 11.0
 
-[node name="Hunter" type="CharacterBody2D"]
+[node name="Hunter" type="CharacterBody2D" unique_id=973668297]
 collision_layer = 2
-collision_mask = 4
+collision_mask = 4096
 script = ExtResource("1_script")
 
-[node name="Collision" type="CollisionShape2D" parent="."]
+[node name="Collision" type="CollisionShape2D" parent="." unique_id=106606867]
 shape = SubResource("collider")
 
-[node name="Visual" type="Sprite2D" parent="."]
+[node name="Visual" type="Sprite2D" parent="." unique_id=45644031]
+texture_filter = 1
+scale = Vector2(1.7, 1.7)
 texture = ExtResource("2_sprite")
 region_enabled = true
 region_rect = Rect2(0, 0, 32, 32)
-texture_filter = 1
-scale = Vector2(1.7, 1.7)

@@ -13,6 +13,7 @@ diffuse_texture = ExtResource("2_guard")
 normal_texture = ExtResource("3_guard_normal")
 
 [node name="Guard" type="CharacterBody2D" unique_id=206261510]
+collision_layer = 128
 collision_mask = 6
 script = ExtResource("1_script")
 

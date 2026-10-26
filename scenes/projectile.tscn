@@ -1,25 +1,23 @@
+[gd_scene format=3 uid="uid://bdc5c34tslw4q"]
 
-[gd_scene load_steps=4 format=3]
-
-[ext_resource type="Script" path="res://scripts/projectile.gd" id="1_projectile"]
-[ext_resource type="Texture2D" path="res://assets/lighting/radial_light.png" id="2_light"]
+[ext_resource type="Script" uid="uid://ckfpbbdb2dtxa" path="res://scripts/projectile.gd" id="1_projectile"]
+[ext_resource type="Texture2D" uid="uid://cg1d80b230spg" path="res://assets/lighting/radial_light.png" id="2_light"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_projectile"]
 radius = 3.0
 
-[node name="Projectile" type="Area2D"]
+[node name="Projectile" type="Area2D" unique_id=1109025588]
 collision_layer = 0
-collision_mask = 6
+collision_mask = 64
 monitorable = false
 script = ExtResource("1_projectile")
 
-[node name="Collision" type="CollisionShape2D" parent="."]
+[node name="Collision" type="CollisionShape2D" parent="." unique_id=1269109469]
 shape = SubResource("CircleShape2D_projectile")
 
-[node name="ShotLight" type="PointLight2D" parent="."]
-texture = ExtResource("2_light")
-texture_scale = 0.22
+[node name="ShotLight" type="PointLight2D" parent="." unique_id=618967506]
 color = Color(1, 0.83, 0.56, 1)
 energy = 0.52
 blend_mode = 1
-shadow_enabled = false
+texture = ExtResource("2_light")
+texture_scale = 0.22

@@ -35,7 +35,7 @@ position = Vector2(64, 15)
 
 [node name="ElevatorDoor" type="StaticBody2D" parent="." unique_id=1934736219]
 position = Vector2(263, 1246)
-collision_layer = 4
+collision_layer = 8
 collision_mask = 0
 
 [node name="Collision" type="CollisionShape2D" parent="ElevatorDoor" unique_id=1783156530]
@@ -56,12 +56,16 @@ texture = ExtResource("4_elevator")
 [node name="Hunters" type="Node2D" parent="." unique_id=647629056]
 
 [node name="Guard" parent="." unique_id=2062303529 instance=ExtResource("3_guard")]
+z_index = 5
 position = Vector2(140, 1331)
+collision_mask = 70
 
 [node name="HUD" parent="." unique_id=81933879 instance=ExtResource("5_hud")]
 
 [node name="KPP" type="Area2D" parent="." unique_id=1011314490]
 position = Vector2(133, 898)
+collision_layer = 0
+collision_mask = 128
 script = ExtResource("6_xmjav")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="KPP" unique_id=254072377]
@@ -70,6 +74,8 @@ shape = SubResource("RectangleShape2D_njsjv")
 
 [node name="KPP2" type="Area2D" parent="." unique_id=399130777]
 position = Vector2(95, 556)
+collision_layer = 0
+collision_mask = 128
 script = ExtResource("7_0j3ff")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="KPP2" unique_id=1840347380]
@@ -83,7 +89,6 @@ near_dim = 0.1
 middle_dim = 0.24
 far_dim = 0.31
 edge_dim = 0.63
-wall_reveal_depth = 128.0
 ray_update_seconds = 0.04
 
 [node name="MARKER" type="Node" parent="." unique_id=168458533]
