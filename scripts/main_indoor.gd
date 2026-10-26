@@ -336,69 +336,6 @@ func _interact() -> void:
 		"termenal":
 			_open_supercomputer()
 			Quests.complete("computer")
-			
-			
-			
-		"welder": _say("НАДПИСЬ НА СТЕКЛЕ: «Тебе открыты все двери».\nПо факту дверь заварена намертво.", 6.0)
-		"robot": _say("Кофейный робот / сварщик дверей. ИИ второго класса.\nВаш непосредственный руководитель.", 6.0)
-		"teleport": _say("— Телепортации не существует! Это декорация для инвесторов!", 5.0)
-		"super":
-			if phase == "INTRO":
-				_open_supercomputer()
-			else:
-				pc_uses += 1
-				_say("Суперкомпьютер: %s. Мир отвечает на команды с задержкой." % ("КОД 0101" if phase == "DAY2" else "СИГНАЛ НЕИЗВЕСТЕН"), 5.0)
-		"reset":
-			if phase == "PANIC" and not reset_used:
-				reset_used = true
-				phase_timer = maxf(phase_timer, 14.0)
-				_say("RESET УСПЕШЕН! Сотрудники аплодируют.\n...Ой. Новый обратный отсчёт. Сотрудники перестали аплодировать.", 9.0)
-			else:
-				_say("RESET: устранение ошибок в обязанности ночной смены не входит.", 5.0)
-		"office":
-			if phase == "PANIC" or phase == "DAY2" or phase == "DAY3":
-				if scrap >= 1 and batteries >= 1:
-					scrap -= 1
-					batteries -= 1
-					built_barricades += 1
-					_build_barrier()
-					_say("Кабинет укреплён. Баррикада #%d. Теперь начальство просит отчёт о мебели." % built_barricades, 5.0)
-					if phase == "DAY3":
-						_complete_quest("fort", "кабинет укреплён")
-				else:
-					_say("Нужно: металл ×1 + батарея ×1. На складе могут быть детали.", 4.0)
-			else:
-				_say("Личный кабинет. Табличка: «Запирается изнутри. В теории».", 4.0)
-		"locker":
-			if phase in NIGHT_PHASES and not monster_mode:
-				is_hiding = not is_hiding
-				guard.active = not is_hiding
-				guard.get_node("Visual").visible = not is_hiding
-				guard.get_node("Shadow").visible = not is_hiding
-				_say("Вы забрались в шкаф. Выйдите нажатием E." if is_hiding else "Вы вышли из шкафа.", 5.0)
-			else:
-				_say("Шкаф. На нём стикер: «Для хранения сотрудников при проверках».", 4.0)
-		"generator":
-			pc_uses += 1
-			if phase == "DAY3":
-				_complete_quest("power", "питание восстановлено")
-			elif phase == "DAY2" and ventilation_fault:
-				ventilation_fault = false
-				fixed_issues += 1
-				_say("Вентиляция исправлена. В журнале появилось имя, которого там не было.", 6.0)
-			else:
-				_say("Питание стабильное. На приборах значение π округлено до 4.", 6.0)
-		"terminal":
-			pc_uses += 1
-			if phase == "DAY3":
-				_complete_quest("terminal", "данные сохранены")
-			elif phase == "DAY2" and not malfunction_hint:
-				malfunction_hint = true
-				fixed_issues += 1
-				_say("СИСТЕМА КОД: отклонение исправлено.\nВ архиве Воркуты-5 за 1986 год обнаружена недоступная запись.", 7.0)
-			else:
-				_say("Архив Воркута-5 / 1986. Данные засекречены.\nВнимание: оператор отмечен как восприимчивый к Коду.", 7.0)
-		_:
 			var zone = entry.get("node")
 			if zone != null and zone.text != "":
 				_say(zone.text, zone.duration)
