@@ -80,6 +80,32 @@ func path_to(start_position: Vector2, end_position: Vector2) -> PackedVector2Arr
 			return PackedVector2Array()
 	return navigation.get_point_path(start, goal)
 
+# Ближайшая проходимая точка к заданной (в тех же координатах, что и path_to).
+# Нужна, чтобы расставлять людей и точки сбора, не попадая в стены и мебель.
+func nearest_walkable_point(world_position: Vector2, max_radius: int = 8) -> Vector2:
+	if navigation == null:
+		return world_position
+	var origin: Vector2i = _clamp_to_map(Vector2i(floori(world_position.x / CELL), floori(world_position.y / CELL)))
+	if not navigation.is_point_solid(origin):
+		return world_position
+	for r in range(1, max_radius + 1):
+		var best_cell := Vector2i.ZERO
+		var best_dist := INF
+		for dy in range(-r, r + 1):
+			for dx in range(-r, r + 1):
+				if maxi(absi(dx), absi(dy)) != r:
+					continue
+				var candidate: Vector2i = origin + Vector2i(dx, dy)
+				if not navigation.is_in_boundsv(candidate) or navigation.is_point_solid(candidate):
+					continue
+				var dist: float = Vector2(dx, dy).length_squared()
+				if dist < best_dist:
+					best_dist = dist
+					best_cell = candidate
+		if best_dist < INF:
+			return Vector2(best_cell.x * CELL + CELL / 2.0, best_cell.y * CELL + CELL / 2.0)
+	return world_position
+
 func _clamp_to_map(cell: Vector2i) -> Vector2i:
 	return Vector2i(
 		clampi(cell.x, map_region.position.x, map_region.end.x - 1),

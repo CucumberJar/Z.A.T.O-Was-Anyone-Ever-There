@@ -1,8 +1,12 @@
 extends CharacterBody2D
 
 signal touched_player
+signal killed(hunter)
 
 const WALK_SPEED := 130.0
+const SCIENTIST_ATTACK_RANGE := 48.0
+const SCIENTIST_ATTACK_INTERVAL := 0.9
+const HIT_STAGGER := 0.14
 const SPRITE_GLITCH: Shader = preload("res://shaders/hunter_sprite_glitch.gdshader")
 const SCREEN_GLITCH: Shader = preload("res://shaders/hunter_screen_glitch.gdshader")
 
@@ -42,8 +46,19 @@ const SCREEN_GLITCH: Shader = preload("res://shaders/hunter_screen_glitch.gdshad
 @export_range(0.0, 18.0, 0.5) var screen_slice_pixels: float = 7.0
 @export_range(0.0, 8.0, 0.5) var screen_rgb_pixels: float = 2.0
 
+@export_group("Бой")
+# 0 — неубиваем: пули только оглушают (как у обычного ночного монстра).
+# Больше нуля — столько попаданий выдерживает охотник, потом погибает.
+@export_range(0, 50, 1) var max_health: int = 0
+# Охотник идёт за ближайшим живым учёным и бьёт его; за игроком — только если учёных не осталось.
+@export var hunts_scientists: bool = false
+
 var player: CharacterBody2D
 var map: Node2D
+var health := 0
+var dying := false
+var _victim = null  # без типа: учёного могли освободить, а типизированная ссылка на такой объект даёт ошибку
+var _victim_attack_timer := 0.0
 var pace_timer := 0.0
 var attack_timer := 0.0
 var stunned := 0.0
@@ -73,6 +88,7 @@ var _screen_overlay: ColorRect
 var _screen_material: ShaderMaterial
 
 func _ready() -> void:
+	health = max_health
 	add_to_group("anomalies")
 	_setup_sprite_animation()
 	_setup_glitch_effects()
@@ -254,11 +270,12 @@ func _physics_process(delta: float) -> void:
 	flash_timer = maxf(0.0, flash_timer - delta)
 	visual.modulate = Color(1.0, 0.65, 0.75, 1.0) if flash_timer > 0.0 else Color.WHITE
 
+	var goal: Vector2 = _current_goal()
 	if pace_timer <= 0.0:
-		path = map.path_to(global_position, player.global_position if player.active else Vector2(984, 1248))
+		path = map.path_to(global_position, goal)
 		path_cursor = 1
 		pace_timer = 0.35
-	var target: Vector2 = player.global_position if player.active else Vector2(984, 1248)
+	var target: Vector2 = goal
 	if path.size() > 1:
 		while path_cursor < path.size() - 1 and global_position.distance_to(path[path_cursor]) < 15.0:
 			path_cursor += 1
@@ -272,9 +289,46 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 	_update_screen_glitch(delta)
+	_attack_scientist(delta)
 	if player.active and global_position.distance_to(player.global_position) < 35.0 and attack_timer == 0.0:
 		attack_timer = 1.2
 		touched_player.emit()
+
+# Куда идти: к ближайшему живому учёному (пока он жив), иначе к игроку, как раньше.
+func _current_goal() -> Vector2:
+	if hunts_scientists:
+		if not _is_victim_valid(_victim):
+			_victim = _find_nearest_scientist()
+		if _victim != null:
+			return _victim.global_position
+	return player.global_position if player.active else Vector2(984, 1248)
+
+func _is_victim_valid(victim) -> bool:
+	return is_instance_valid(victim) and victim.has_method("is_alive") and victim.is_alive()
+
+func _find_nearest_scientist() -> Node2D:
+	var nearest: Node2D = null
+	var best := INF
+	for node in get_tree().get_nodes_in_group("scientists"):
+		var candidate: Node2D = node as Node2D
+		if candidate == null or not _is_victim_valid(candidate):
+			continue
+		var dist: float = global_position.distance_to(candidate.global_position)
+		if dist < best:
+			best = dist
+			nearest = candidate
+	return nearest
+
+# Удар по учёному. Пока охотника оглушает пуля, он не бьёт — огонь прикрытия работает.
+func _attack_scientist(delta: float) -> void:
+	_victim_attack_timer = maxf(0.0, _victim_attack_timer - delta)
+	if not hunts_scientists or stunned > 0.0 or _victim_attack_timer > 0.0:
+		return
+	if not _is_victim_valid(_victim):
+		return
+	if global_position.distance_to(_victim.global_position) < SCIENTIST_ATTACK_RANGE:
+		_victim_attack_timer = SCIENTIST_ATTACK_INTERVAL
+		_victim.take_damage(1, (_victim.global_position - global_position).normalized())
 
 func _update_screen_glitch(delta: float) -> void:
 	var target_strength: float = 0.0
@@ -290,8 +344,38 @@ func _update_screen_glitch(delta: float) -> void:
 	if _screen_overlay.visible:
 		_screen_material.set_shader_parameter("strength", _screen_strength)
 
-func take_damage(_amount: int, _from_direction: Vector2 = Vector2.ZERO) -> void:
-	# The experiment is dangerous: bullets stun but cannot kill the threat.
-	stunned = 0.75
+func take_damage(amount: int, _from_direction: Vector2 = Vector2.ZERO) -> void:
+	if dying:
+		return
+	if max_health <= 0:
+		# The experiment is dangerous: bullets stun but cannot kill the threat.
+		stunned = 0.75
+		flash_timer = 0.18
+		print("Мне больно!!")
+		return
+	# Убиваемый охотник: пуля сбивает шаг и отнимает здоровье.
+	health -= amount
+	stunned = maxf(stunned, HIT_STAGGER)
 	flash_timer = 0.18
+<<<<<<< HEAD
+	if health <= 0:
+		_die()
+
+func _die() -> void:
+	if dying:
+		return
+	dying = true
+	active = false
+	velocity = Vector2.ZERO
+	remove_from_group("anomalies")  # пули больше не считают его целью
+	var body_shape: CollisionShape2D = get_node_or_null("Collision") as CollisionShape2D
+	if body_shape != null:
+		body_shape.set_deferred("disabled", true)
+	killed.emit(self)
+	visual.modulate = Color(1.0, 0.65, 0.75, 1.0)
+	var fade: Tween = create_tween()
+	fade.tween_property(visual, "modulate:a", 0.0, 0.6)
+	fade.tween_callback(queue_free)
+=======
 	print("Мне больно!!")
+>>>>>>> 868e56671d5b9af9c1a032f65511b95c06ed1c8f
