@@ -1,5 +1,7 @@
 # Z.A.T.O. — Was Anyone Ever There?
 
 > Проебали.
-> Claude Code сломал полпроекта.  
+> 
+> Claude Code сломал полпроекта.
+>   
 > Печаль самурая.
