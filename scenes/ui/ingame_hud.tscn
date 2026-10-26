@@ -4,7 +4,6 @@
 [ext_resource type="Texture2D" uid="uid://igr2f8texl6y" path="res://assets/ui/healt2.png" id="3_28rw6"]
 [ext_resource type="Texture2D" uid="uid://cysmwm4pshd85" path="res://assets/ui/staff_portrait.png" id="3_staff"]
 [ext_resource type="Texture2D" uid="uid://drbplt16simb1" path="res://assets/ui/healt.png" id="4_cibmn"]
-[ext_resource type="Texture2D" uid="uid://ptm7p4vucwtm" path="res://assets/ui/gun_icon.png" id="4_gun"]
 [ext_resource type="Texture2D" uid="uid://dsp4sb1116au5" path="res://assets/ui/dialogue_plate.png" id="5_dialog"]
 [ext_resource type="Texture2D" uid="uid://c1doufscq5kte" path="res://assets/ui/pause_notebook_clean_v060.png" id="7_pause"]
 [ext_resource type="FontFile" uid="uid://c35xg7jni7v5p" path="res://assets/fonts/PixeloidSans.ttf" id="7_twyrg"]
@@ -28,17 +27,6 @@ anchors_preset = 0
 [node name="Summary" type="Label" parent="Info" unique_id=217846595]
 layout_mode = 0
 
-[node name="GunIcon" type="TextureRect" parent="." unique_id=1130684654]
-texture_filter = 1
-offset_left = 157.0
-offset_top = 10.0
-offset_right = 193.0
-offset_bottom = 38.0
-mouse_filter = 2
-texture = ExtResource("4_gun")
-expand_mode = 1
-stretch_mode = 5
-
 [node name="Health" type="TextureProgressBar" parent="." unique_id=311672053]
 offset_left = 11.0
 offset_top = 9.0
@@ -57,10 +45,10 @@ tint_progress = Color(0.7882353, 0.34901962, 0.49019608, 1)
 [node name="VitalPanel" type="Control" parent="." unique_id=1471205812]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 197.0
-offset_top = 11.0
-offset_right = 291.0
-offset_bottom = 43.0
+offset_left = 160.0
+offset_top = 16.0
+offset_right = 254.0
+offset_bottom = 48.0
 mouse_filter = 2
 
 [node name="Vitals" type="Label" parent="VitalPanel" unique_id=69367075]
@@ -236,6 +224,7 @@ vertical_alignment = 1
 autowrap_mode = 2
 
 [node name="PauseRoot" type="Control" parent="." unique_id=2107799205]
+visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -320,6 +309,7 @@ horizontal_alignment = 1
 autowrap_mode = 2
 
 [node name="DossierPage" type="Control" parent="PauseRoot" unique_id=51645538]
+visible = false
 anchors_preset = 0
 offset_left = 30.0
 offset_top = -34.0
@@ -362,40 +352,47 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="SettingsPage" type="Control" parent="PauseRoot" unique_id=1642980295]
-visible = false
 anchors_preset = 0
+offset_transform_enabled = true
 mouse_filter = 2
 
 [node name="SettingsTitle" type="Label" parent="PauseRoot/SettingsPage" unique_id=65514229]
 layout_mode = 0
-offset_left = 362.0
-offset_top = 124.0
-offset_right = 570.0
-offset_bottom = 147.0
+offset_left = 383.99997
+offset_top = 135.99998
+offset_right = 592.0
+offset_bottom = 158.99998
+rotation = 0.075049154
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "ПАРАМЕТРЫ"
 
 [node name="VolumeTitle" type="Label" parent="PauseRoot/SettingsPage" unique_id=39539547]
 layout_mode = 0
-offset_left = 360.0
-offset_top = 158.0
-offset_right = 544.0
-offset_bottom = 178.0
+offset_left = 383.99997
+offset_top = 168.0
+offset_right = 568.0
+offset_bottom = 191.0
+rotation = 0.075049154
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "ГРОМКОСТЬ"
 
 [node name="Volume" type="HSlider" parent="PauseRoot/SettingsPage" unique_id=233281703]
 layout_mode = 0
-offset_left = 362.0
-offset_top = 182.0
-offset_right = 535.0
-offset_bottom = 202.0
+offset_left = 376.0
+offset_top = 184.0
+offset_right = 549.0
+offset_bottom = 204.0
+rotation = 0.075049154
 max_value = 1.0
 step = 0.05
 value = 0.8
 
 [node name="Fullscreen" type="CheckButton" parent="PauseRoot/SettingsPage" unique_id=83930471]
 layout_mode = 0
-offset_left = 357.0
-offset_top = 213.0
-offset_right = 567.0
-offset_bottom = 243.0
+offset_left = 376.0
+offset_top = 199.99997
+offset_right = 586.0
+offset_bottom = 230.99997
+rotation = 0.075049154
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "ПОЛНЫЙ ЭКРАН"

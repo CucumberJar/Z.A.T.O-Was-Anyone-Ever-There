@@ -58,6 +58,8 @@ var _printing_time: float = 0.0
 var _dialogue_open: bool = false
 var _typing_finished: bool = true
 var _source_for_next_line: String = ""
+var last_hp: int = -1
+var hp_tween: Tween
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -134,9 +136,31 @@ func _process(delta: float) -> void:
 	var game: Variant = get_parent()
 	if game != null and is_instance_valid(game.guard):
 		var hp: int = clampi(game.guard.health, 0, 3)
-		if hp_bar != null:
-			hp_bar.value = hp
+		if hp != last_hp:
+			animate_health(hp)
 
+func animate_health(new_hp: int) -> void:
+	if last_hp == -1:
+		last_hp = new_hp
+		hp_bar.value = new_hp
+		return
+
+	var damaged := new_hp < last_hp
+	last_hp = new_hp
+
+	if hp_tween and hp_tween.is_running():
+		hp_tween.kill()
+
+	hp_tween = create_tween()
+	hp_tween.tween_property(
+		hp_bar, "value", float(new_hp), 0.35
+	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+	if damaged:
+		hp_bar.modulate = Color(1.0, 0.0, 0.0, 1.0)
+		hp_tween.parallel().tween_property(
+			hp_bar, "modulate", Color.WHITE, 0.4
+		)
 # Вызывай перед _say(), если строку невозможно распознать по префиксу.
 # Допустимые значения: service, officer, hr, computer, archive, alert.
 func set_next_dialogue_source(source: String) -> void:
