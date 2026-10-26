@@ -29,7 +29,7 @@ size = Vector2(382, 162)
 size = Vector2(573, 126.5)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_k51bn"]
-size = Vector2(51, 57)
+size = Vector2(149.5, 87.5)
 
 [node name="Main" type="Node2D" unique_id=1080801256]
 script = ExtResource("1_main")
@@ -53,6 +53,8 @@ collision_mask = 0
 [node name="Collectibles" type="Node2D" parent="." unique_id=12800179]
 
 [node name="Pickup" parent="Collectibles" unique_id=1538518925 instance=ExtResource("3_2h22d")]
+z_index = 2
+texture_filter = 1
 position = Vector2(664, 1773)
 texture = ExtResource("4_sp6or")
 script = ExtResource("5_pusco")
@@ -245,5 +247,5 @@ action = "reset"
 label = "Кнопка перезагрузки"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Button" unique_id=304927141]
-position = Vector2(17.860962, 23.996826)
+position = Vector2(-253.38904, 19.746826)
 shape = SubResource("RectangleShape2D_k51bn")

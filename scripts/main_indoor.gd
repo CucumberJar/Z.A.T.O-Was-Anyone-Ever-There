@@ -382,13 +382,6 @@ func _on_computer_cancelled() -> void:
 	_close_computer_interface()
 	_say("ПРОТОКОЛ ЗАПУСКА ОТМЕНЁН. ВЕДОМСТВО НИЧЕГО НЕ ЗАМЕТИЛО.", 4.0)
 
-func _on_computer_failed(feedback_was_enabled: bool) -> void:
-	_close_computer_interface()
-	pc_uses += 1
-	_start_panic()
-	if not feedback_was_enabled:
-		_say("99.99% / КОД ИЗМЕНИЛ ПАРАМЕТРЫ САМ.\nОбратная связь была отключена. Оператор не причастен. Вероятно.", 10.0)
-
 func _start_panic() -> void:
 	phase = "PANIC"
 	guard.weapon_enabled = false
@@ -396,6 +389,7 @@ func _start_panic() -> void:
 
 func _start_first_night() -> void:
 	phase_timer = NIGHT_DURATION
+	phase = "PANIC"
 	guard.weapon_enabled = true
 	_say("ИНТЕРКОМ:\n ВНИМАНИЕ!!! ВКЛЮЧЕН РЕЖИМ ЧС, в соответствии с ГОСТ1487, электричество будет отключено для нагнетания атмосферы", 12.0)
 	if guard.ammo < 4:
