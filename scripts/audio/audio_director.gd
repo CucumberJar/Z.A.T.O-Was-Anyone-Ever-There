@@ -32,6 +32,7 @@ const AMBIENCES := {
 
 const UI_CLICK := "res://assets/audio/ui/ui_click.ogg"
 const UI_HOVER := "res://assets/audio/ui/ui_hover.ogg"
+const SETTINGS_PATH := "user://zato_settings.cfg"
 
 var _music_players: Array[AudioStreamPlayer] = []
 var _active_music: int = -1
@@ -46,6 +47,8 @@ var _ui_click: AudioStreamPlayer
 var _ui_hover: AudioStreamPlayer
 var _ui_scan_timer: float = 0.0
 var _last_paused: bool = false
+var master_volume_linear: float = 0.8
+var fullscreen_preference: bool = false
 
 
 func _ready() -> void:
@@ -66,6 +69,8 @@ func _ready() -> void:
 	_ui_click.volume_db = ui_volume_db
 	_ui_hover.volume_db = ui_volume_db - 7.0
 	_last_paused = get_tree().paused
+	fullscreen_preference = DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+	_load_settings()
 
 
 func _new_player(player_name: String) -> AudioStreamPlayer:
@@ -101,13 +106,64 @@ func _process(delta: float) -> void:
 			_connect_ui_buttons(scene)
 
 
+func get_master_volume() -> float:
+	return master_volume_linear
+
+
+func set_master_volume(value: float) -> void:
+	master_volume_linear = clampf(value, 0.0, 1.0)
+	_apply_master_volume()
+	_save_settings()
+
+
+func get_fullscreen_preference() -> bool:
+	return fullscreen_preference
+
+
+func set_fullscreen_preference(enabled: bool) -> void:
+	fullscreen_preference = enabled
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if enabled else DisplayServer.WINDOW_MODE_WINDOWED)
+	_save_settings()
+
+
+func _load_settings() -> void:
+	var config := ConfigFile.new()
+	if config.load(SETTINGS_PATH) == OK:
+		master_volume_linear = clampf(float(config.get_value("audio", "master_volume", 0.8)), 0.0, 1.0)
+		if config.has_section_key("display", "fullscreen"):
+			fullscreen_preference = bool(config.get_value("display", "fullscreen", false))
+			if not OS.has_feature("web"):
+				DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen_preference else DisplayServer.WINDOW_MODE_WINDOWED)
+	_apply_master_volume()
+
+
+func _save_settings() -> void:
+	var config := ConfigFile.new()
+	var load_error: Error = config.load(SETTINGS_PATH)
+	if load_error != OK and load_error != ERR_FILE_NOT_FOUND:
+		push_warning("AudioDirector: не удалось прочитать настройки (код %d)." % load_error)
+	config.set_value("audio", "master_volume", master_volume_linear)
+	config.set_value("display", "fullscreen", fullscreen_preference)
+	var save_error: Error = config.save(SETTINGS_PATH)
+	if save_error != OK:
+		push_warning("AudioDirector: не удалось сохранить настройки (код %d)." % save_error)
+
+
+func _apply_master_volume() -> void:
+	var master_bus: int = AudioServer.get_bus_index("Master")
+	if master_bus < 0:
+		return
+	AudioServer.set_bus_volume_db(master_bus, linear_to_db(maxf(0.001, master_volume_linear)))
+	AudioServer.set_bus_mute(master_bus, master_volume_linear <= 0.001)
+
+
 func _select_music() -> String:
 	var scene: Node = get_tree().current_scene
 	if scene == null:
 		return ""
 	if get_tree().paused:
-		return "pause"
-	if not scene.has_method("_start_night"):
+		return _music_key if not _music_key.is_empty() else "menu"
+	if not scene.has_method("_start_first_night"):
 		return "menu"
 	if bool(scene.get("computer_open")):
 		return "terminal"
@@ -124,7 +180,7 @@ func _select_music() -> String:
 
 func _select_ambience() -> String:
 	var scene: Node = get_tree().current_scene
-	if scene == null or get_tree().paused or not scene.has_method("_start_night"):
+	if scene == null or get_tree().paused or not scene.has_method("_start_first_night"):
 		return ""
 	if bool(scene.get("computer_open")):
 		return "building"

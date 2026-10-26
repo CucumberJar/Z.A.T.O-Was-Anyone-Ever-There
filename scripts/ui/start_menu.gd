@@ -27,8 +27,8 @@ func _ready() -> void:
 	fullscreen_button.add_theme_color_override("font_color", SKIN.INK)
 	fullscreen_button.add_theme_font_size_override("font_size", 12)
 	settings_panel.visible = false
-	volume_slider.value = db_to_linear(AudioServer.get_bus_volume_db(0))
-	fullscreen_button.button_pressed = DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+	volume_slider.value = AudioDirector.get_master_volume()
+	fullscreen_button.button_pressed = AudioDirector.get_fullscreen_preference()
 	start_button.pressed.connect(_start_game)
 	settings_button.pressed.connect(_open_settings)
 	exit_button.pressed.connect(_exit_game)
@@ -49,11 +49,10 @@ func _close_settings() -> void:
 	start_button.grab_focus()
 
 func _set_volume(value: float) -> void:
-	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(0.001, value)))
-	AudioServer.set_bus_mute(0, value <= 0.001)
+	AudioDirector.set_master_volume(value)
 
 func _toggle_fullscreen(enabled: bool) -> void:
-	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if enabled else DisplayServer.WINDOW_MODE_WINDOWED)
+	AudioDirector.set_fullscreen_preference(enabled)
 
 func _exit_game() -> void:
 	if OS.has_feature("web"):
