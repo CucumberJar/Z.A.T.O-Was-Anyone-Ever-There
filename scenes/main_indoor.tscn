@@ -2,11 +2,14 @@
 
 [ext_resource type="Script" uid="uid://c1l3o1ovxxhad" path="res://scripts/main_indoor.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://dpsfg4bocu3h3" path="res://scenes/indoor_institute.tscn" id="2_indoor"]
+[ext_resource type="PackedScene" uid="uid://bnwtq4ik04beo" path="res://scenes/pickup.tscn" id="3_2h22d"]
 [ext_resource type="PackedScene" uid="uid://dmlgjyqjfv2ck" path="res://scenes/guard.tscn" id="3_guard"]
+[ext_resource type="Texture2D" uid="uid://bjvx6uiewfkp3" path="res://assets/indoor/medkit.png" id="4_sp6or"]
 [ext_resource type="Script" uid="uid://6q11b6hxijla" path="res://scripts/interactable.gd" id="4_u2mf2"]
 [ext_resource type="PackedScene" uid="uid://dlsjkxwiu6y4g" path="res://scenes/ui/ingame_hud.tscn" id="5_hud"]
-[ext_resource type="Script" uid="uid://bgyttj0tmle1u" path="res://scripts/dialogs/kpp.gd" id="6_xmjav"]
-[ext_resource type="Script" uid="uid://doe3s3soegcd0" path="res://scripts/dialogs/kpp2.gd" id="7_0j3ff"]
+[ext_resource type="Script" uid="uid://2f7wqfxxxv3u" path="res://scripts/pickup.gd" id="5_pusco"]
+[ext_resource type="Texture2D" uid="uid://by5xhytgpyyrc" path="res://assets/indoor/ammo.png" id="6_46j76"]
+[ext_resource type="Texture2D" uid="uid://cygvw6w3kq6j6" path="res://assets/indoor/coffee.png" id="7_uhlew"]
 [ext_resource type="PackedScene" uid="uid://cegp84k612a3b" path="res://scenes/fog_of_war.tscn" id="8_2h22d"]
 [ext_resource type="Texture2D" uid="uid://csr3pq3d6jqe0" path="res://assets/indoor/walle.png" id="9_u2mf2"]
 
@@ -24,6 +27,9 @@ size = Vector2(382, 162)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_6xr82"]
 size = Vector2(573, 126.5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_k51bn"]
+size = Vector2(51, 57)
 
 [node name="Main" type="Node2D" unique_id=1080801256]
 script = ExtResource("1_main")
@@ -46,6 +52,111 @@ collision_mask = 0
 
 [node name="Collectibles" type="Node2D" parent="." unique_id=12800179]
 
+[node name="Pickup" parent="Collectibles" unique_id=1538518925 instance=ExtResource("3_2h22d")]
+position = Vector2(664, 1773)
+texture = ExtResource("4_sp6or")
+script = ExtResource("5_pusco")
+
+[node name="Pickup2" parent="Collectibles" unique_id=1002242345 instance=ExtResource("3_2h22d")]
+z_index = 2
+texture_filter = 1
+position = Vector2(429, 683)
+texture = ExtResource("6_46j76")
+script = ExtResource("5_pusco")
+kind = "ammo"
+
+[node name="Pickup12" parent="Collectibles" unique_id=361926821 instance=ExtResource("3_2h22d")]
+z_index = 2
+texture_filter = 1
+position = Vector2(428, 713)
+texture = ExtResource("6_46j76")
+script = ExtResource("5_pusco")
+kind = "ammo"
+
+[node name="Pickup3" parent="Collectibles" unique_id=1980043271 instance=ExtResource("3_2h22d")]
+z_index = 2
+texture_filter = 1
+position = Vector2(998, 1227)
+texture = ExtResource("4_sp6or")
+script = ExtResource("5_pusco")
+
+[node name="Pickup4" parent="Collectibles" unique_id=1726719313 instance=ExtResource("3_2h22d")]
+z_index = 2
+texture_filter = 1
+position = Vector2(1031, 1227)
+texture = ExtResource("4_sp6or")
+script = ExtResource("5_pusco")
+
+[node name="Pickup5" parent="Collectibles" unique_id=9993147 instance=ExtResource("3_2h22d")]
+z_index = 2
+texture_filter = 1
+position = Vector2(1065, 1227)
+texture = ExtResource("4_sp6or")
+script = ExtResource("5_pusco")
+
+[node name="Pickup6" parent="Collectibles" unique_id=2081500830 instance=ExtResource("3_2h22d")]
+z_index = 2
+texture_filter = 1
+position = Vector2(2066, 1973)
+texture = ExtResource("7_uhlew")
+script = ExtResource("5_pusco")
+kind = "coffee"
+
+[node name="Pickup7" parent="Collectibles" unique_id=629366131 instance=ExtResource("3_2h22d")]
+z_index = 2
+texture_filter = 1
+position = Vector2(2469, 1975)
+texture = ExtResource("7_uhlew")
+script = ExtResource("5_pusco")
+kind = "coffee"
+
+[node name="Pickup8" parent="Collectibles" unique_id=909692569 instance=ExtResource("3_2h22d")]
+z_index = 2
+texture_filter = 1
+position = Vector2(2874, 1972)
+texture = ExtResource("7_uhlew")
+script = ExtResource("5_pusco")
+kind = "coffee"
+
+[node name="Pickup9" parent="Collectibles" unique_id=1933770573 instance=ExtResource("3_2h22d")]
+z_index = 2
+texture_filter = 1
+position = Vector2(2384, 1096)
+texture = ExtResource("6_46j76")
+script = ExtResource("5_pusco")
+kind = "ammo"
+
+[node name="Pickup13" parent="Collectibles" unique_id=968055006 instance=ExtResource("3_2h22d")]
+z_index = 2
+texture_filter = 1
+position = Vector2(3013, 282)
+texture = ExtResource("6_46j76")
+script = ExtResource("5_pusco")
+kind = "ammo"
+
+[node name="Pickup14" parent="Collectibles" unique_id=78289888 instance=ExtResource("3_2h22d")]
+z_index = 2
+texture_filter = 1
+position = Vector2(2979, 282)
+texture = ExtResource("6_46j76")
+script = ExtResource("5_pusco")
+kind = "ammo"
+
+[node name="Pickup10" parent="Collectibles" unique_id=353373636 instance=ExtResource("3_2h22d")]
+z_index = 2
+texture_filter = 1
+position = Vector2(1943, 1102)
+texture = ExtResource("6_46j76")
+script = ExtResource("5_pusco")
+kind = "ammo"
+
+[node name="Pickup11" parent="Collectibles" unique_id=337063404 instance=ExtResource("3_2h22d")]
+z_index = 2
+texture_filter = 1
+position = Vector2(1990, 1104)
+texture = ExtResource("4_sp6or")
+script = ExtResource("5_pusco")
+
 [node name="Barricades" type="Node2D" parent="." unique_id=821542207]
 
 [node name="Hunters" type="Node2D" parent="." unique_id=647629056]
@@ -56,18 +167,6 @@ position = Vector2(140, 1331)
 collision_mask = 70
 
 [node name="HUD" parent="." unique_id=81933879 instance=ExtResource("5_hud")]
-
-[node name="KPP" type="Area2D" parent="." unique_id=1011314490]
-position = Vector2(133, 898)
-collision_layer = 0
-collision_mask = 128
-script = ExtResource("6_xmjav")
-
-[node name="KPP2" type="Area2D" parent="." unique_id=399130777]
-position = Vector2(95, 556)
-collision_layer = 0
-collision_mask = 128
-script = ExtResource("7_0j3ff")
 
 [node name="FogOfWar" parent="." unique_id=937794744 instance=ExtResource("8_2h22d")]
 night_radius = 330.0
@@ -122,24 +221,29 @@ position = Vector2(-76, -147)
 texture = ExtResource("9_u2mf2")
 
 [node name="Electro" type="Area2D" parent="." unique_id=832733005]
+script = ExtResource("4_u2mf2")
+action = "electro"
+label = "Электро щит"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Electro" unique_id=785658958]
+position = Vector2(2077, 290)
 shape = SubResource("RectangleShape2D_njsjv")
 
-[node name="Electro" type="Area2D" parent="Electro" unique_id=1634693118]
-script = ExtResource("4_u2mf2")
-action = "reset"
-label = "Электрощиток"
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Electro/Electro" unique_id=1993158182]
-position = Vector2(2080, 273)
-shape = SubResource("RectangleShape2D_njsjv")
-
-[node name="Computer" type="Area2D" parent="Electro" unique_id=1082949013]
+[node name="Computer" type="Area2D" parent="." unique_id=1082949013]
 script = ExtResource("4_u2mf2")
 action = "termenal"
 label = "Обычный суперкомпьютер"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Electro/Computer" unique_id=215233569]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Computer" unique_id=215233569]
 position = Vector2(1215.5, 1890.75)
 shape = SubResource("RectangleShape2D_6xr82")
+
+[node name="Button" type="Area2D" parent="." unique_id=217939258]
+position = Vector2(1353.639, 2034.5032)
+script = ExtResource("4_u2mf2")
+action = "reset"
+label = "Кнопка перезагрузки"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Button" unique_id=304927141]
+position = Vector2(17.860962, 23.996826)
+shape = SubResource("RectangleShape2D_k51bn")
