@@ -8,6 +8,8 @@
 [ext_resource type="Texture2D" uid="uid://c1doufscq5kte" path="res://assets/ui/pause_notebook_clean_v060.png" id="7_pause"]
 [ext_resource type="FontFile" uid="uid://c35xg7jni7v5p" path="res://assets/fonts/PixeloidSans.ttf" id="7_twyrg"]
 [ext_resource type="Texture2D" uid="uid://dvflfc36rbhp1" path="res://assets/ui/dialogue.png" id="8_nioib"]
+[ext_resource type="Texture2D" uid="uid://btsi35bpbni5e" path="res://assets/ui/dp2mnabugp0a1.png" id="9_28rw6"]
+[ext_resource type="Texture2D" uid="uid://cakopl2adlt0p" path="res://assets/indoor/стул2.png" id="10_cibmn"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_qa521"]
 texture = ExtResource("8_nioib")
@@ -224,7 +226,6 @@ vertical_alignment = 1
 autowrap_mode = 2
 
 [node name="PauseRoot" type="Control" parent="." unique_id=2107799205]
-visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -396,3 +397,14 @@ offset_bottom = 230.99997
 rotation = 0.075049154
 theme_override_fonts/font = ExtResource("7_twyrg")
 text = "ПОЛНЫЙ ЭКРАН"
+
+[node name="Lenin" type="Sprite2D" parent="PauseRoot" unique_id=2135046921]
+visible = false
+position = Vector2(272.00003, 39.99997)
+scale = Vector2(0.08188153, 0.06825397)
+texture = ExtResource("9_28rw6")
+
+[node name="Stul" type="Sprite2D" parent="PauseRoot" unique_id=288939244]
+visible = false
+position = Vector2(240, 56)
+texture = ExtResource("10_cibmn")

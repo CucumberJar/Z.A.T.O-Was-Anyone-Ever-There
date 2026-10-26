@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://bflkyb71r5fu"]
+
+[ext_resource type="Script" uid="uid://ogknexf64s1e" path="res://scripts/easter_egg.gd" id="1_egg"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_egg"]
+radius = 56.0
+
+[node name="EasterEgg" type="Area2D" unique_id=775488102]
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
+script = ExtResource("1_egg")
+label = "Осмотреть странный предмет"
+text = "АРХИВ: Вы обнаружили предмет, которого не должно существовать."
+duration = 4.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=93744675]
+shape = SubResource("CircleShape2D_egg")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=814625040]
+texture_filter = 1
