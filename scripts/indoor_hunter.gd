@@ -357,6 +357,7 @@ func take_damage(amount: int, _from_direction: Vector2 = Vector2.ZERO) -> void:
 	health -= amount
 	stunned = maxf(stunned, HIT_STAGGER)
 	flash_timer = 0.18
+<<<<<<< HEAD
 	if health <= 0:
 		_die()
 
