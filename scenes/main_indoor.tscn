@@ -3,25 +3,25 @@
 [ext_resource type="Script" uid="uid://c1l3o1ovxxhad" path="res://scripts/main_indoor.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://dpsfg4bocu3h3" path="res://scenes/indoor_institute.tscn" id="2_indoor"]
 [ext_resource type="PackedScene" uid="uid://dmlgjyqjfv2ck" path="res://scenes/guard.tscn" id="3_guard"]
-[ext_resource type="Texture2D" uid="uid://pxmjtgeubdlm" path="res://assets/indoor/elevator_door.png" id="4_elevator"]
+[ext_resource type="Script" uid="uid://6q11b6hxijla" path="res://scripts/interactable.gd" id="4_u2mf2"]
 [ext_resource type="PackedScene" uid="uid://dlsjkxwiu6y4g" path="res://scenes/ui/ingame_hud.tscn" id="5_hud"]
 [ext_resource type="Script" uid="uid://bgyttj0tmle1u" path="res://scripts/dialogs/kpp.gd" id="6_xmjav"]
 [ext_resource type="Script" uid="uid://doe3s3soegcd0" path="res://scripts/dialogs/kpp2.gd" id="7_0j3ff"]
 [ext_resource type="PackedScene" uid="uid://cegp84k612a3b" path="res://scenes/fog_of_war.tscn" id="8_2h22d"]
+[ext_resource type="Texture2D" uid="uid://csr3pq3d6jqe0" path="res://assets/indoor/walle.png" id="9_u2mf2"]
 
-[sub_resource type="RectangleShape2D" id="elevator_collider"]
-size = Vector2(42, 90)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nh84e"]
+size = Vector2(139, 206)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_njsjv"]
-size = Vector2(287.5, 92.875)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_p04rc"]
+size = Vector2(84, 155)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_6xr82"]
-size = Vector2(431, 189)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ahg6a"]
+size = Vector2(194, 300)
 
 [node name="Main" type="Node2D" unique_id=1080801256]
 script = ExtResource("1_main")
 cabin_spawn_position = Vector2(5058, 545)
-cabin_door_position = Vector2(5058, 665)
 institute_arrival_position = Vector2(423, 384)
 elevator_ambient_color = Color(0.8694869, 0.8954797, 0.9215471, 1)
 elevator_camera_shake = 0.8
@@ -37,17 +37,6 @@ position = Vector2(64, 15)
 position = Vector2(263, 1246)
 collision_layer = 8
 collision_mask = 0
-
-[node name="Collision" type="CollisionShape2D" parent="ElevatorDoor" unique_id=1783156530]
-position = Vector2(-1, 52)
-shape = SubResource("elevator_collider")
-
-[node name="Visual" type="Sprite2D" parent="ElevatorDoor" unique_id=1833899852]
-z_index = 4
-texture_filter = 1
-position = Vector2(-1, 47.000008)
-scale = Vector2(1, 1.0416669)
-texture = ExtResource("4_elevator")
 
 [node name="Collectibles" type="Node2D" parent="." unique_id=12800179]
 
@@ -68,19 +57,11 @@ collision_layer = 0
 collision_mask = 128
 script = ExtResource("6_xmjav")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="KPP" unique_id=254072377]
-position = Vector2(107.25, 206.4375)
-shape = SubResource("RectangleShape2D_njsjv")
-
 [node name="KPP2" type="Area2D" parent="." unique_id=399130777]
 position = Vector2(95, 556)
 collision_layer = 0
 collision_mask = 128
 script = ExtResource("7_0j3ff")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="KPP2" unique_id=1840347380]
-position = Vector2(216.5, 18.5)
-shape = SubResource("RectangleShape2D_6xr82")
 
 [node name="FogOfWar" parent="." unique_id=937794744 instance=ExtResource("8_2h22d")]
 night_radius = 330.0
@@ -101,3 +82,35 @@ position = Vector2(5058, 665)
 
 [node name="wishod" type="Marker2D" parent="MARKER" unique_id=1962913821]
 position = Vector2(423, 384)
+
+[node name="Arcive" type="Area2D" parent="." unique_id=1495715782]
+script = ExtResource("4_u2mf2")
+action = "storage_door"
+label = "Завареная дверь архива"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arcive" unique_id=862560486]
+position = Vector2(807.5, 215)
+shape = SubResource("RectangleShape2D_nh84e")
+
+[node name="Arcive_Table" type="Area2D" parent="." unique_id=164496914]
+script = ExtResource("4_u2mf2")
+action = "storage_table"
+label = "Табличка"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arcive_Table" unique_id=426097504]
+position = Vector2(688, 241.5)
+shape = SubResource("RectangleShape2D_p04rc")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1636843626]
+position = Vector2(5033.8564, 754.2495)
+script = ExtResource("4_u2mf2")
+action = "elevator"
+label = "Выйти из лифта"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=747656213]
+position = Vector2(21.143555, -121.24951)
+shape = SubResource("RectangleShape2D_ahg6a")
+
+[node name="Sprite2D" type="Sprite2D" parent="Area2D/CollisionShape2D" unique_id=1800030017]
+position = Vector2(-76, -147)
+texture = ExtResource("9_u2mf2")
