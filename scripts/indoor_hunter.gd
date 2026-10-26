@@ -296,6 +296,11 @@ func _physics_process(delta: float) -> void:
 
 # Куда идти: к ближайшему живому учёному (пока он жив), иначе к игроку, как раньше.
 func _current_goal() -> Vector2:
+	# The player is always a valid threat target. Hunters may pursue scientists
+	# at range, but once the player is nearby they must switch aggro immediately.
+	# This prevents the first-night wave from ignoring the player for the whole chase.
+	if player.active and global_position.distance_to(player.global_position) <= 260.0:
+		return player.global_position
 	if hunts_scientists:
 		if not _is_victim_valid(_victim):
 			_victim = _find_nearest_scientist()
