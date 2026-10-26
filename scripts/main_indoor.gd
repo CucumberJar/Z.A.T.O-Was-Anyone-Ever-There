@@ -672,7 +672,6 @@ func _trigger_electro_ambush() -> void:
 	if phase != "SORTIE" or electro_ambush_triggered:
 		return
 	electro_ambush_triggered = true
-	guard.active = false
 	guard.velocity = Vector2.ZERO
 	computer_open = false
 	blackout_timer = maxf(blackout_timer, 1.8)
@@ -683,20 +682,27 @@ func _trigger_electro_ambush() -> void:
 	hunter.map = map
 	hunter.fortification_level = 0
 	hunter.face_player = true
+	hunter.hunts_scientists = false
+	hunter.touched_player.connect(_hunter_hit)
 	$Hunters.add_child(hunter)
-	# The anomaly manifests at the electrical panel, so the key story beat
-	# cannot be skipped by pathfinding or by the NPC-targeting logic.
-	hunter.global_position = guard.global_position + Vector2(18.0, 0.0)
-	_say("ПИТАНИЕ ВОССТАНОВЛЕНО.\nЩелчок за спиной. Аномалия уже в электрощитовой.", 3.0)
+	# Spawn within attack range so the chase/capture is deterministic even if
+	# navigation has no valid route from the corridor to the electrical room.
+	hunter.global_position = guard.global_position + Vector2(24.0, 0.0)
+	hunter.active = true
+	guard.active = true
+	_say("ПИТАНИЕ ВОССТАНОВЛЕНО.\nЩелчок за спиной. АНОМАЛИЯ ОБНАРУЖИЛА ВАС.", 3.0)
 	if has_node("HUD"):
 		$HUD.visible = false
 	await get_tree().create_timer(0.9).timeout
 	if not is_inside_tree() or phase != "SORTIE":
 		return
+	# The anomaly catches the player in the electrical room. Keep the hunter
+	# visible through the final glitch frame, then transition to morning.
 	if is_instance_valid(hunter):
+		hunter.active = false
+		_say("ЗАХВАТ! АНОМАЛИЯ ДОТРОНУЛАСЬ ДО ВАС.\nСИГНАЛ ПОТЕРЯН.", 2.0)
+		await get_tree().create_timer(0.45).timeout
 		hunter.queue_free()
-	# The capture is the cause of the blackout/glitch; the player comes to
-	# in the morning, with the power restored and the incident unresolved.
 	blackout_timer = 0.0
 	guard.active = true
 	if has_node("HUD"):
