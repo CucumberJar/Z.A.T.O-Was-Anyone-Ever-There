@@ -1,0 +1,61 @@
+name: Godot release checks
+
+on:
+  push:
+    branches:
+      - main
+      - "release/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-export:
+    name: Validate and export Godot project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Godot and export templates
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.2
+          use-dotnet: false
+          include-templates: true
+
+      - name: Print engine version
+        run: godot --headless --version
+
+      - name: Import and validate project resources
+        run: godot --headless --path . --editor --quit
+
+      - name: Run progression and audio smoke tests
+        run: godot --headless --path . --script res://tests/smoke_test.gd
+
+      - name: Smoke test the main menu
+        run: godot --headless --path . --quit-after 3
+
+      - name: Smoke test the gameplay scene
+        run: godot --headless --path . --quit-after 5 res://scenes/main_indoor.tscn
+
+      - name: Export Web
+        run: mkdir -p build/web && godot --headless --path . --export-release "Web" build/web/index.html
+
+      - name: Export Windows Desktop
+        run: mkdir -p build/windows && godot --headless --path . --export-release "Windows Desktop" build/windows/ZATO.exe
+
+      - name: Export Linux/X11
+        run: mkdir -p build/linux && godot --headless --path . --export-release "Linux/X11" build/linux/ZATO.x86_64
+
+      - name: Upload release candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: zato-release-candidate
+          path: build/
+          if-no-files-found: error
+          retention-days: 14
