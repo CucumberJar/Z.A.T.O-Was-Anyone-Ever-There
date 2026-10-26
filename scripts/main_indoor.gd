@@ -360,6 +360,14 @@ func _interact() -> void:
 		return
 	var key: String = str(entry["name"])
 	print("E: ", key, " | manual активно: ", "manual" in Quests.active)
+	
+	# ПРОВЕРКА НА ТЕЛЕПОРТ: Если имя объекта начинается с "teleport" или равно ему
+	if key.begins_with("teleport"):
+		var teleporter_node = entry.get("node")
+		if teleporter_node != null and teleporter_node.has_method("use"):
+			teleporter_node.use(self) # Вызываем телепорт, передавая текущий класс игры
+			return
+
 	match key:
 		"elevator":
 			_open_elevator_door()
