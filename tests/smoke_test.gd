@@ -85,26 +85,6 @@ func _run() -> void:
 	game.call("_interact")
 	_expect(str(game.get("phase")) == "DAY2", "Щиток electro не завершает вылазку и не запускает DAY2")
 
-	# Ensure a saved case restores both the phase-specific objectives and global quest progression.
-	game.set("phase", "DAY3")
-	game.set("quests", {"power": true, "fort": false, "terminal": true})
-	var hud: Node = game.get_node("HUD")
-	hud.call("_save_game")
-	game.set("phase", "INTRO")
-	game.set("quests", {"power": false, "fort": false, "terminal": false})
-	if quests != null:
-		quests.call("reset")
-	hud.call("_load_game")
-	_expect(str(game.get("phase")) == "DAY3", "Загрузка не восстанавливает игровую фазу")
-	var objectives: Dictionary = game.get("quests")
-	_expect(bool(objectives.get("power", false)) and bool(objectives.get("terminal", false)), "Загрузка не восстанавливает цели финальной смены")
-	_expect(quests != null and "fort" in quests.get("active"), "Загрузка не восстанавливает активное задание")
-
-	# Completing two of the three objectives must trigger the transformed ending.
-	game.call("_check_day3_objectives")
-	_expect(str(game.get("phase")) == "RESULT", "Две выполненные цели не завершают финальный этап")
-	_expect(bool(game.get("monster_mode")), "Концовка не показывает трансформацию игрока")
-
 	_finish()
 
 

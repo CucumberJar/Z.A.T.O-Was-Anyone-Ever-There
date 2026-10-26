@@ -84,8 +84,8 @@ func _ready() -> void:
 	var fullscreen: CheckButton = $PauseRoot/SettingsPage/Fullscreen
 	fullscreen.add_theme_color_override("font_color", SKIN.INK)
 	fullscreen.add_theme_font_size_override("font_size", 11)
-	$PauseRoot/SettingsPage/Volume.value = db_to_linear(AudioServer.get_bus_volume_db(0))
-	fullscreen.button_pressed = DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+	$PauseRoot/SettingsPage/Volume.value = AudioDirector.get_master_volume()
+	fullscreen.button_pressed = AudioDirector.get_fullscreen_preference()
 	$PauseRoot/SettingsPage/Volume.value_changed.connect(_change_volume)
 	fullscreen.toggled.connect(_toggle_fullscreen)
 	$PauseRoot/Resume.pressed.connect(_resume_game)
@@ -320,11 +320,10 @@ func _open_settings() -> void:
 	$PauseRoot/SettingsPage/Volume.grab_focus()
 
 func _change_volume(value: float) -> void:
-	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(0.001, value)))
-	AudioServer.set_bus_mute(0, value <= 0.001)
+	AudioDirector.set_master_volume(value)
 
 func _toggle_fullscreen(enabled: bool) -> void:
-	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if enabled else DisplayServer.WINDOW_MODE_WINDOWED)
+	AudioDirector.set_fullscreen_preference(enabled)
 
 func _main_menu() -> void:
 	get_tree().paused = false
@@ -334,6 +333,13 @@ func _save_game() -> void:
 	var game: Variant = get_parent()
 	var pos: Vector2 = game.guard.global_position
 	var keys: Array = game.pickups.keys()
+	var done_quests: Array[String] = []
+	for quest_id in Quests.quests.keys():
+		if Quests.is_done(str(quest_id)):
+			done_quests.append(str(quest_id))
+	var active_quests: Array[String] = []
+	for quest_id in Quests.active:
+		active_quests.append(str(quest_id))
 	var state: Dictionary = {
 		"version": 1, "phase": game.phase, "phase_timer": game.phase_timer,
 		"guard_position": [pos.x, pos.y], "health": game.guard.health,
@@ -346,7 +352,14 @@ func _save_game() -> void:
 		"read_hr": game.read_hr, "night_number": game.night_number,
 		"ventilation_fault": game.ventilation_fault,
 		"malfunction_hint": game.malfunction_hint, "teleported": game.teleported,
-		"is_hiding": game.is_hiding
+		"is_hiding": game.is_hiding,
+		"quests_done": done_quests, "quests_active": active_quests,
+		"phase_quests": game.quests.duplicate(true),
+		"monster_mode": game.monster_mode, "stayed_human": game.stayed_human,
+		"scientists_caught": game.scientists_caught, "scientists_killed": game.scientists_killed,
+		"scientists_total": game.scientists_total, "scientists_spawned": game.scientists_spawned,
+		"hunters_to_spawn": game.hunters_to_spawn, "hunters_spawned": game.hunters_spawned,
+		"hunter_spawn_timer": game.hunter_spawn_timer
 	}
 	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -374,8 +387,23 @@ func _load_game() -> void:
 		$PauseRoot/PauseHint.text = "НЕИЗВЕСТНЫЙ ФОРМАТ"
 		return
 	var game: Variant = get_parent()
+	if data.has("quests_done") and data.has("quests_active"):
+		Quests.reset()
+		for quest_id in data.get("quests_done", []):
+			var done_id: String = str(quest_id)
+			if Quests.quests.has(done_id):
+				Quests.quests[done_id]["done"] = true
+		Quests.active.clear()
+		for quest_id in data.get("quests_active", []):
+			var active_id: String = str(quest_id)
+			if Quests.quests.has(active_id) and not Quests.is_done(active_id) and not active_id in Quests.active:
+				Quests.active.append(active_id)
+		Quests.changed.emit()
 	game._clear_hunters()
 	game.phase = str(data.get("phase", "INTRO"))
+	var saved_phase_quests: Variant = data.get("phase_quests", game.quests)
+	if typeof(saved_phase_quests) == TYPE_DICTIONARY:
+		game.quests = (saved_phase_quests as Dictionary).duplicate(true)
 	game.phase_timer = float(data.get("phase_timer", 0.0))
 	var position_data: Array = data.get("guard_position", [360.0, 1176.0])
 	game.guard.travel_to(Vector2(float(position_data[0]), float(position_data[1])), Rect2(0, 0, 2304, 1440))
@@ -397,13 +425,29 @@ func _load_game() -> void:
 	game.malfunction_hint = bool(data.get("malfunction_hint", false))
 	game.teleported = bool(data.get("teleported", false))
 	game.is_hiding = bool(data.get("is_hiding", false))
+	game.stayed_human = bool(data.get("stayed_human", true))
+	game.scientists_caught = int(data.get("scientists_caught", game.scientists_caught))
+	game.scientists_killed = int(data.get("scientists_killed", game.scientists_killed))
+	game.scientists_total = int(data.get("scientists_total", game.scientists_total))
+	game.scientists_spawned = bool(data.get("scientists_spawned", game.scientists_spawned))
+	game.hunters_to_spawn = int(data.get("hunters_to_spawn", 0))
+	game.hunters_spawned = int(data.get("hunters_spawned", 0))
+	game.hunter_spawn_timer = float(data.get("hunter_spawn_timer", 0.0))
+	if bool(data.get("monster_mode", false)):
+		game._become_monster()
+	else:
+		game._become_human()
+	game.scientists_caught = int(data.get("scientists_caught", game.scientists_caught))
+	game.scientists_killed = int(data.get("scientists_killed", game.scientists_killed))
 	game.guard.active = not game.is_hiding
-	game.guard.get_node("Visual").visible = not game.is_hiding
-	game.guard.get_node("Shadow").visible = not game.is_hiding
+	game.guard.get_node("Visual").visible = not game.is_hiding and not game.monster_mode
+	game.guard.get_node("Shadow").visible = not game.is_hiding and not game.monster_mode
 	var left: Array = data.get("pickups_left", [])
+	game._spawn_pickups()
 	for key in game.pickups.keys():
+		var pickup: Sprite2D = game.pickups[key]
+		pickup.visible = left.has(key)
 		if not left.has(key):
-			game.pickups[key].queue_free()
 			game.pickups.erase(key)
 	for barrier in game.get_node("Barricades").get_children():
 		barrier.queue_free()

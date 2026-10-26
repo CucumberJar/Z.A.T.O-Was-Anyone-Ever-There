@@ -12,13 +12,13 @@ const ITEM_FILES := {
 	"medkit": "res://assets/indoor/medkit.png",
 	"ammo": "res://assets/indoor/ammo.png"
 }
-const NIGHT_DURATION := 40.0
+const NIGHT_DURATION := 60.0
 const DAY_DURATION := 60.0
-const SORTIE_DURATION := 12.0
+const SORTIE_DURATION := 25.0
 const DAY3_QUESTS := ["power", "fort", "terminal"]
 const QUESTS_TO_STAY_HUMAN := 2
 const NIGHT_PHASES := ["NIGHT1", "NIGHT2", "NIGHT3"]
-const TIMED_PHASES := ["PANIC", "NIGHT1", "DAY2", "SORTIE", "NIGHT2", "DAY3", "NIGHT3"]
+const TIMED_PHASES := ["NIGHT1", "DAY2", "SORTIE", "NIGHT2", "DAY3", "NIGHT3"]
 
 
 @export_group("Катсцена / Позиции")
@@ -164,6 +164,7 @@ func _ready() -> void:
 func _spawn_pickups() -> void:
 	$Collectibles.visible = true
 	for node in $Collectibles.get_children():
+		node.visible = true
 		pickups[str(node.name)] = node
 
 func _update_hunting_fog() -> void:
@@ -188,7 +189,12 @@ func _process(delta: float) -> void:
 	if phase in TIMED_PHASES:
 		phase_timer -= delta
 		if phase_timer <= 0.0:
-			Quests.complete_timed()
+			if phase == "SORTIE":
+				_on_sortie_timeout()
+			elif phase == "DAY3":
+				_ending_vr()
+			else:
+				Quests.complete_timed()
 	if phase == "DAY2" and ventilation_fault and Rect2(1392, 768, 384, 288).has_point(guard.global_position):
 		if not is_hiding:
 			fade_timer -= delta
@@ -362,23 +368,37 @@ func _interact() -> void:
 			Quests.complete("manual")
 		"storage_table":
 			_say(Dialogies.t("storage_door"),5.0)	
-		"energo":
-			_say(Dialogies.t("Энергия восстановлена"),5.0)	
-			Quests.complete("sortie")	
+		"electro":
+			if phase == "SORTIE":
+				_say(Dialogies.t("power_restored"), 5.0)
+				Quests.complete("sortie")
+			elif phase == "DAY3":
+				quests["power"] = true
+				_say(Dialogies.t("power_restored"), 4.0)
+				_check_day3_objectives()
 		"termenal":
-			_open_supercomputer()
-			Quests.complete("computer")
-			var zone = entry.get("node")
-			if zone != null and zone.text != "":
-				_say(zone.text, zone.duration)
+			if phase == "DAY3":
+				quests["terminal"] = true
+				_say("ТЕРМИНАЛ: архив данных сохранён. Система сообщает, что архив уже был сохранён.", 4.0)
+				_check_day3_objectives()
+			else:
+				_open_supercomputer()
+				var zone = entry.get("node")
+				if zone != null and zone.text != "":
+					_say(zone.text, zone.duration)
 		"reset":
-			reset_used = true
-			Quests.complete("reset")
+			if phase == "DAY3":
+				quests["fort"] = true
+				_say("ПРОТОКОЛ ИЗОЛЯЦИИ АКТИВИРОВАН. Двери лаборатории заблокированы.", 4.0)
+				_check_day3_objectives()
+			else:
+				reset_used = true
+				Quests.complete("reset")
 		"pickup":
 			var item_id: String = str(entry["key"])
 			var item: Sprite2D = pickups[item_id]
 			var item_kind: String = item.kind
-			item.queue_free()
+			item.visible = false
 			pickups.erase(item_id)
 			match item_kind:
 				"metal": scrap += 1
@@ -422,6 +442,7 @@ func _on_computer_cancelled() -> void:
 # интерфейс оставался заблокированным: HUD скрыт, игрок неактивен.
 func _on_computer_failed(_feedback_on: bool) -> void:
 	_close_computer_interface()
+	Quests.complete("computer")
 
 func _start_panic() -> void:
 	phase = "PANIC"
@@ -472,6 +493,7 @@ func _spawn_scientists() -> void:
 		var scientist = SCIENTIST_SCRIPT.new()
 		scientist.setup(map, guard, waypoints, str(names[i % names.size()]), anchor)
 		scientist.died.connect(_on_scientist_died)
+		scientist.caught.connect(_on_scientist_caught)
 		scientists_node.add_child(scientist)
 		scientist.global_position = map.nearest_walkable_point(anchor + offset)
 	scientists_total = SCIENTIST_COUNT
@@ -516,9 +538,17 @@ func _gather_scientists() -> void:
 	for i in living.size():
 		living[i].start_gather(center, i, living.size())
 
+func _on_scientist_caught(scientist) -> void:
+	scientists_caught += 1
+	var left: int = scientists_total - scientists_killed - scientists_caught
+	_say("ОБЪЕКТ ЗАХВАЧЕН: %s. Осталось в комплексе: %d." % [scientist.display_name, maxi(0, left)], 4.0)
+	if monster_mode and left <= 0:
+		_finish()
+
+
 func _on_scientist_died(scientist) -> void:
 	scientists_killed += 1
-	var left: int = scientists_total - scientists_killed
+	var left: int = scientists_total - scientists_killed - scientists_caught
 	if left <= 0:
 		_say("ПОТЕРЯНО: %s.\nУчёных больше нет. Охотники ищут, кого ещё уволить." % scientist.display_name, 7.0)
 	else:
@@ -624,7 +654,34 @@ func _start_sortie() -> void:
 	phase = "SORTIE"
 	phase_timer = SORTIE_DURATION
 	guard.weapon_enabled = false
-	_say("[ЗАГЛУШКА: ВЫЛАЗКА]\nЗадание: восстановить питание. Свет гаснет, за вами гонится шиза.\nЗдесь будет погоня и починка щитка.", 10.0)
+	blackout_timer = blackout_duration
+	var hunter = HUNTER_SCENE.instantiate()
+	hunter.player = guard
+	hunter.map = map
+	hunter.fortification_level = 0
+	hunter.touched_player.connect(_hunter_hit)
+	$Hunters.add_child(hunter)
+	hunter.global_position = map.nearest_walkable_point(Vector2(1944.0, 408.0))
+	_say("АВАРИЙНОЕ ПИТАНИЕ ОТКЛЮЧЕНО.\nДоберитесь до электрощита и восстановите свет. Аномалия уже в коридоре.", 8.0)
+
+
+func _on_sortie_timeout() -> void:
+	if phase != "SORTIE":
+		return
+	phase_timer = 4.0
+	blackout_timer = maxf(blackout_timer, blackout_duration)
+	_say("ПИТАНИЕ НЕ ВОССТАНОВЛЕНО. СИСТЕМЫ ЖИЗНЕОБЕСПЕЧЕНИЯ ОТКАЗЫВАЮТ.", 4.0)
+	guard.take_damage(1)
+
+func _start_second_night() -> void:
+	_clear_hunters()
+	phase = "NIGHT2"
+	phase_timer = NIGHT_DURATION
+	night_number = 2
+	guard.weapon_enabled = true
+	_say("ВТОРАЯ НОЧЬ. Свет снова нестабилен. Не позволяйте аномалии добраться до сотрудников.", 8.0)
+	_spawn_hunter()
+
 
 func _start_day3() -> void:
 	_clear_hunters()
@@ -640,19 +697,36 @@ func _start_day3() -> void:
 	guard.weapon_enabled = false
 	_say("ДЕНЬ 3.\nЗадания: питание (щиток), укрепить кабинет, сохранить данные (терминал).\nУспейте как можно больше.", 10.0)
 
+func _check_day3_objectives() -> void:
+	if phase != "DAY3":
+		return
+	var completed: int = 0
+	for objective in DAY3_QUESTS:
+		if bool(quests.get(objective, false)):
+			completed += 1
+	if completed >= QUESTS_TO_STAY_HUMAN:
+		_ending_hero()
+	else:
+		_say("СИСТЕМНЫЙ ОТЧЁТ: выполнено %d из %d задач для сохранения человечности." % [completed, QUESTS_TO_STAY_HUMAN], 4.0)
+
+
 func _ending_hero() -> void:
 	phase = "RESULT"
 	guard.active = false
 	_clear_hunters()
+	_become_monster()
+	get_tree().call_group("scientists", "start_flee_monster")
 	message_label.visible = true
-	message_label.text = "СПАСЁННЫЙ ГЕРОЙ\nУтром выживших выводят из комплекса. Тебя называют героем.\nНа улице твоя тень движется не так, как ты.\n\nR — заново"
+	message_label.text = "ПОСЛЕДНИЙ ЛИФТ\nСотрудники успевают покинуть комплекс. Ты остаёшься у дверей.\nВ отражении металла твоё лицо больше не человеческое.\n\nR — заново"
 
 func _ending_vr() -> void:
 	phase = "RESULT"
 	guard.active = false
 	_clear_hunters()
+	_become_monster()
+	get_tree().call_group("scientists", "start_panic")
 	message_label.visible = true
-	message_label.text = "VR-ПРОВЕРКА\nМир рассыпается на пиксели. Ты снимаешь шлем в лифте.\nРезультат теста: непригоден. Вы уволены.\n\nR — заново"
+	message_label.text = "КОНТАКТ НЕ ПРЕРВАН\nК утру прибывает новая смена. Сотрудники видят в коридоре существо.\nТы уже не помнишь, как выглядело твоё лицо.\n\nR — заново"
 
 func _build_barrier() -> void:
 	var marker := Polygon2D.new()
@@ -692,14 +766,17 @@ func _on_quest_completed(id: String) -> void:
 			_spawn_pickups()
 			_start_first_night()
 		"gather":
-			Quests.start("night")	
+			Quests.start("sortie")
+			_start_sortie()
 		"night":
 			Quests.start("sortie")
+			_start_sortie()
 		"sortie":
 			_start_day2()
 			Quests.start("fort")
 		"fort":
 			Quests.start("hunt")
+			_start_second_night()
 		"hunt":
 			Quests.start("final")
 			_start_day3()

@@ -9,7 +9,7 @@ signal completed(id: String)
 # "timed": true    — задание закрывается по таймеру фазы (см. complete_timed).
 var quests := {
 	"elevator": {"title": "Выйти из лифта",              "done": false},
-	"manual":   {"title": "Найти инструкцию",             "done": false},
+	"manual":   {"title": "Проверить архив",             "done": false},
 	"computer": {"title": "Настроить суперкомпьютер",     "done": false, "needs": ["manual"]},
 	"reset": {"title": "Перезапустить компьютер",     "done": false, "needs": ["computer"]},
 	"gather":   {"title": "Собрать припасы",              "done": false, "timed": true},
