@@ -324,6 +324,14 @@ func _interact() -> void:
 		return
 	var key: String = str(entry["name"])
 	print("E: ", key, " | manual активно: ", "manual" in Quests.active)
+	
+	# ПРОВЕРКА НА ТЕЛЕПОРТ: Если имя объекта начинается с "teleport" или равно ему
+	if key.begins_with("teleport"):
+		var teleporter_node = entry.get("node")
+		if teleporter_node != null and teleporter_node.has_method("use"):
+			teleporter_node.use(self) # Вызываем телепорт, передавая текущий класс игры
+			return
+
 	match key:
 		"elevator":
 			_open_elevator_door()
@@ -342,6 +350,12 @@ func _interact() -> void:
 		"reset":
 			reset_used = true
 			Quests.complete("reset")
+		"easter_egg":
+			var egg: Node = entry.get("node")
+			if egg != null and egg.has_method("activate"):
+				egg.activate(self)
+			else:
+				push_warning("Пасхалка не найдена или у неё отсутствует activate()")
 		"pickup":
 			var item_id: String = str(entry["key"])
 			var item: Sprite2D = pickups[item_id]
@@ -382,6 +396,9 @@ func _on_computer_cancelled() -> void:
 	_close_computer_interface()
 	_say("ПРОТОКОЛ ЗАПУСКА ОТМЕНЁН. ВЕДОМСТВО НИЧЕГО НЕ ЗАМЕТИЛО.", 4.0)
 
+func _on_computer_failed(feedback_was_enabled: bool) -> void:
+	_close_computer_interface()
+
 func _start_panic() -> void:
 	phase = "PANIC"
 	guard.weapon_enabled = false
@@ -394,10 +411,8 @@ func _start_first_night() -> void:
 	_say("ИНТЕРКОМ:\n ВНИМАНИЕ!!! ВКЛЮЧЕН РЕЖИМ ЧС, в соответствии с ГОСТ1487, электричество будет отключено для нагнетания атмосферы", 12.0)
 	if guard.ammo < 4:
 		guard.ammo = 4
-		
-	else:
-		_spawn_hunter()
-		_say("HR: В целях экологии свет выключен.\nКого съедят — тот будет уволен. Ваш HR ♥", 10.0)
+	_spawn_hunter()
+	_say("HR: В целях экологии свет выключен.\nКого съедят — тот будет уволен. Ваш HR ♥", 10.0)
 
 func _spawn_hunter() -> void:
 	var hunter = HUNTER_SCENE.instantiate()
