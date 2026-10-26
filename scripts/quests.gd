@@ -11,15 +11,14 @@ var quests := {
 	"elevator": {"title": "Выйти из лифта",              "done": false},
 	"manual":   {"title": "Найти инструкцию",             "done": false},
 	"computer": {"title": "Настроить суперкомпьютер",     "done": false, "needs": ["manual"]},
+	"reset": {"title": "Перезапустить компьютер",     "done": false, "needs": ["computer"]},
 	"gather":   {"title": "Собрать припасы",              "done": false, "timed": true},
-	"night1":   {"title": "Пережить ночь",                "done": false, "timed": true},
-	"fortify":  {"title": "Укрепить кабинет",             "done": false, "timed": true},
+	"night":   {"title": "Пережить ночь",                "done": false, "timed": true},
 	"sortie":   {"title": "Добраться до щитка",           "done": false, "timed": true},
-	"hunt":     {"title": "Поймать учёных: {caught}/{total}", "done": false, "timed": true},
-	"power":    {"title": "Вернуть питание",              "done": false},
-	"fort":     {"title": "Собрать ресурсы",              "done": false},
-	"terminal": {"title": "Сохранить данные",             "done": false},
-	"night3":   {"title": "Пережить ночь",                "done": false, "timed": true},
+	"fort":   {"title": "Укрепиться",           "done": false, "timed": true},
+	"hunt":     {"title": "Поймать монстра", "done": false, "timed": true},
+	"power":    {"title": "Помочь ученым или построить баррикады","done": false},
+	"final":     {"title": "Победить монстра",              "done": false},
 }
 var active: Array = []
 

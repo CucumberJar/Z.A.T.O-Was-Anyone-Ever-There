@@ -136,10 +136,14 @@ func _ready() -> void:
 	guard.get_node("Camera2D").zoom = Vector2(1, 1)
 	guard.active = false 
 	_say("ЛИФТ / СЕКРЕТНЫЙ ИНСТИТУТ / 1987\nСпуск на рабочий уровень...", 3.0)
+	$Collectibles.visible = false
 	_refresh()
+	
+func _spawn_pickups() -> void:
+	$Collectibles.visible = true
+	for node in $Collectibles.get_children():
+		pickups[str(node.name)] = node
 
-# Fog is active only when IT hunts the human: nights 1 and 3.
-# The player becomes IT during NIGHT2, so visibility is normal then.
 func _update_hunting_fog() -> void:
 	if fog_of_war == null:
 		return
@@ -160,10 +164,7 @@ func _process(delta: float) -> void:
 	if phase in TIMED_PHASES:
 		phase_timer -= delta
 		if phase_timer <= 0.0:
-			if phase == "DAY3":
-				_end_day3()
-			else:
-				Quests.complete_timed()
+			Quests.complete_timed()
 	if phase == "DAY2" and ventilation_fault and Rect2(1392, 768, 384, 288).has_point(guard.global_position):
 		if not is_hiding:
 			fade_timer -= delta
@@ -223,7 +224,6 @@ func _update_elevator_ride(delta: float) -> void:
 	var t: float = elevator_ride_time
 	var progress: float = clampf(t / elevator_ride_duration, 0.0, 1.0)
 	var camera: Camera2D = guard.get_node("Camera2D")
-	# Лёгкая вибрация. Сила тряски меняется в Inspector.
 	var shake: float = lerpf(elevator_camera_shake, 0.0, smoothstep(0.65, 1.0, progress))
 	camera.offset = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * shake
 	elevator_floor = 1 + mini(8, int(progress * 9.0))
@@ -339,6 +339,24 @@ func _interact() -> void:
 			var zone = entry.get("node")
 			if zone != null and zone.text != "":
 				_say(zone.text, zone.duration)
+		"reset":
+			reset_used = true
+			Quests.complete("reset")
+		"pickup":
+			var item_id: String = str(entry["key"])
+			var item: Sprite2D = pickups[item_id]
+			var item_kind: String = item.kind
+			item.queue_free()
+			pickups.erase(item_id)
+			match item_kind:
+				"metal": scrap += 1
+				"battery": batteries += 1
+				"coffee": coffee += 1
+				"medkit":
+					medicine += 1
+					guard.health = mini(3, guard.health + 1)
+				"ammo": guard.ammo += 6
+			_say("Получено: %s." % item_kind.to_upper(), 3.5)
   
 
 func _open_supercomputer() -> void:
@@ -364,29 +382,19 @@ func _on_computer_cancelled() -> void:
 	_close_computer_interface()
 	_say("ПРОТОКОЛ ЗАПУСКА ОТМЕНЁН. ВЕДОМСТВО НИЧЕГО НЕ ЗАМЕТИЛО.", 4.0)
 
-func _on_computer_failed(feedback_was_enabled: bool) -> void:
-	_close_computer_interface()
-	pc_uses += 1
-	_start_panic()
-	if not feedback_was_enabled:
-		_say("99.99% / КОД ИЗМЕНИЛ ПАРАМЕТРЫ САМ.\nОбратная связь была отключена. Оператор не причастен. Вероятно.", 10.0)
-
 func _start_panic() -> void:
 	phase = "PANIC"
-	phase_timer = 44.0
 	guard.weapon_enabled = false
-	_say("СУПЕРКОМПЬЮТЕР: 99.99% ... BSOD.\nТРЕВОГА! СРОЧНЫЙ СБОР РЕСУРСОВ. Все выходы заблокированы.", 11.0)
+	_say("СУПЕРКОМПЬЮТЕР: 99.99% ... BSOD.\nТРЕВОГА! ВОЗМОЖНО САМОУНИЧТОЖЕНИЕ КОМПЛЕКСА", 11.0)
 
-func _start_night(number: int) -> void:
-	phase = "NIGHT%d" % number
-	night_number = number
+func _start_first_night() -> void:
 	phase_timer = NIGHT_DURATION
+	phase = "PANIC"
 	guard.weapon_enabled = true
+	_say("ИНТЕРКОМ:\n ВНИМАНИЕ!!! ВКЛЮЧЕН РЕЖИМ ЧС, в соответствии с ГОСТ1487, электричество будет отключено для нагнетания атмосферы", 12.0)
 	if guard.ammo < 4:
 		guard.ammo = 4
-	if number == 2:
-		_become_monster()
-		_say("Что-то внутри тебя щёлкнуло. Теперь ты — ОНО.\nУчёные разбегаются. Лови их, пока не наступило утро. [ПРОБЕЛ] — рывок.", 12.0)
+		
 	else:
 		_spawn_hunter()
 		_say("HR: В целях экологии свет выключен.\nКого съедят — тот будет уволен. Ваш HR ♥", 10.0)
@@ -467,27 +475,6 @@ func _start_day3() -> void:
 	guard.weapon_enabled = false
 	_say("ДЕНЬ 3.\nЗадания: питание (щиток), укрепить кабинет, сохранить данные (терминал).\nУспейте как можно больше.", 10.0)
 
-func _quests_done() -> int:
-	var count := 0
-	for key in quests:
-		if quests[key]:
-			count += 1
-	return count
-
-func _complete_quest(id: String, text: String) -> void:
-	if quests.get(id, true):
-		return
-	quests[id] = true
-	_say("ЗАДАНИЕ ВЫПОЛНЕНО: %s (%d/3)" % [text, _quests_done()], 5.0)
-
-func _end_day3() -> void:
-	if _quests_done() >= QUESTS_TO_STAY_HUMAN:
-		stayed_human = true
-		_start_night(3)
-	else:
-		stayed_human = false
-		_ending_vr()
-
 func _ending_hero() -> void:
 	phase = "RESULT"
 	guard.active = false
@@ -532,23 +519,26 @@ func _on_quest_completed(id: String) -> void:
 		"manual":
 			Quests.start("computer")
 		"computer":
+			Quests.start("reset")
 			_start_panic()
+		"reset":
 			Quests.start("gather")
+			_spawn_pickups()
+			_start_first_night()
 		"gather":
-			_start_night(1)
-			Quests.start("night1")
-		"night1":
-			_start_day2()
-			Quests.start("fortify")
-		"fortify":
-			_start_sortie()
+			Quests.start("night")	
+		"night":
 			Quests.start("sortie")
+			_start_day2()
 		"sortie":
-			_start_night(2)
+			Quests.start("fort")
+			_start_sortie()
+		"fort":
 			Quests.start("hunt")
 		"hunt":
+			Quests.start("final")
 			_start_day3()
-		"night3":
+		"final":
 			_ending_hero()
 
 func _finish() -> void:

@@ -1,0 +1,3 @@
+[gd_scene format=3 uid="uid://bnwtq4ik04beo"]
+
+[node name="Pickup" type="Sprite2D" unique_id=1002242345]
