@@ -15,21 +15,10 @@ const ITEM_FILES := {
 const NIGHT_DURATION := 40.0
 const DAY_DURATION := 60.0
 const SORTIE_DURATION := 12.0
+const DAY3_QUESTS := ["power", "fort", "terminal"]
 const QUESTS_TO_STAY_HUMAN := 2
 const NIGHT_PHASES := ["NIGHT1", "NIGHT2", "NIGHT3"]
 const TIMED_PHASES := ["PANIC", "NIGHT1", "DAY2", "SORTIE", "NIGHT2", "DAY3", "NIGHT3"]
-const ITEM_POSITIONS := [
-	{"id":"A", "kind":"metal", "pos":Vector2(1656, 960)},
-	{"id":"B", "kind":"battery", "pos":Vector2(1968, 1200)},
-	{"id":"C", "kind":"coffee", "pos":Vector2(408, 1248)},
-	{"id":"D", "kind":"medkit", "pos":Vector2(360, 456)},
-	{"id":"E", "kind":"metal", "pos":Vector2(408, 888)},
-	{"id":"F", "kind":"ammo", "pos":Vector2(2064, 408)},
-	{"id":"G", "kind":"battery", "pos":Vector2(1560, 384)},
-	{"id":"H", "kind":"coffee", "pos":Vector2(1104, 480)},
-	{"id":"I", "kind":"metal", "pos":Vector2(1608, 936)},
-	{"id":"J", "kind":"medkit", "pos":Vector2(1944, 840)},
-]
 
 
 @export_group("Катсцена / Позиции")
@@ -138,21 +127,14 @@ func _ready() -> void:
 	guard.health = 3
 	guard.ammo = 0
 	guard.weapon_enabled = false
-	# Всё происходит в main_indoor.tscn, без смены сцены.
 	_create_transition_overlay()
+	Quests.reset()
+	Quests.completed.connect(_on_quest_completed)
+	Quests.start("elevator")
 	_update_hunting_fog()
 	guard.travel_to(cabin_spawn_position, cabin_camera_bounds)
 	guard.get_node("Camera2D").zoom = Vector2(1, 1)
-	guard.active = false  # герой стоит в кабине, пока лифт не приедет
-	for info in ITEM_POSITIONS:
-		var sprite := Sprite2D.new()
-		sprite.texture = load(ITEM_FILES[info["kind"]])
-		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		sprite.position = info["pos"]
-		sprite.z_index = 2
-		$Collectibles.add_child(sprite)
-		pickups[info["id"]] = sprite
-	
+	guard.active = false 
 	_say("ЛИФТ / СЕКРЕТНЫЙ ИНСТИТУТ / 1987\nСпуск на рабочий уровень...", 3.0)
 	_refresh()
 
@@ -177,20 +159,11 @@ func _process(delta: float) -> void:
 		_update_elevator_ride(delta)
 	if phase in TIMED_PHASES:
 		phase_timer -= delta
-		if phase == "PANIC" and phase_timer <= 0.0:
-			_start_night(1)
-		elif phase == "NIGHT1" and phase_timer <= 0.0:
-			_start_day2()
-		elif phase == "DAY2" and phase_timer <= 0.0:
-			_start_sortie()
-		elif phase == "SORTIE" and phase_timer <= 0.0:
-			_start_night(2)
-		elif phase == "NIGHT2" and phase_timer <= 0.0:
-			_start_day3()
-		elif phase == "DAY3" and phase_timer <= 0.0:
-			_end_day3()
-		elif phase == "NIGHT3" and phase_timer <= 0.0:
-			_ending_hero()
+		if phase_timer <= 0.0:
+			if phase == "DAY3":
+				_end_day3()
+			else:
+				Quests.complete_timed()
 	if phase == "DAY2" and ventilation_fault and Rect2(1392, 768, 384, 288).has_point(guard.global_position):
 		if not is_hiding:
 			fade_timer -= delta
@@ -350,28 +323,22 @@ func _interact() -> void:
 	if entry.is_empty():
 		return
 	var key: String = str(entry["name"])
+	print("E: ", key, " | manual активно: ", "manual" in Quests.active)
 	match key:
 		"elevator":
 			_open_elevator_door()
-		"storage_table":
-			_say(Dialogies.t("storage_door"),5.0)
+			Quests.complete("elevator")
+		"storage_door":
+			_say(Dialogies.t("storage"),5.0)
+			Quests.complete("manual")
 		"storage_table":
 			_say(Dialogies.t("storage_door"),5.0)	
-		"pickup":
-			var item_id: String = str(entry["key"])
-			var item_kind: String = ""
-			for row in ITEM_POSITIONS:
-				if str(row["id"]) == item_id:
-					item_kind = str(row["kind"])
-			pickups[item_id].queue_free()
-			pickups.erase(item_id)
-			match item_kind:
-				"metal": scrap += 1
-				"battery": batteries += 1
-				"coffee": coffee += 1
-				"medkit": medicine += 1; guard.health = mini(3, guard.health + 1)
-				"ammo": guard.ammo += 6
-			_say("Получено: %s. Снабжение не подтверждает вашу личность." % item_kind.to_upper(), 3.5)
+		"termenal":
+			_open_supercomputer()
+			Quests.complete("computer")
+			
+			
+			
 		"welder": _say("НАДПИСЬ НА СТЕКЛЕ: «Тебе открыты все двери».\nПо факту дверь заварена намертво.", 6.0)
 		"robot": _say("Кофейный робот / сварщик дверей. ИИ второго класса.\nВаш непосредственный руководитель.", 6.0)
 		"teleport": _say("— Телепортации не существует! Это декорация для инвесторов!", 5.0)
@@ -533,7 +500,6 @@ func _become_monster() -> void:
 		monster_sprite.position = Vector2(0, -14)
 		guard.add_child(monster_sprite)
 	monster_sprite.visible = true
-	_spawn_scientists()
 
 func _become_human() -> void:
 	monster_mode = false
@@ -542,31 +508,6 @@ func _become_human() -> void:
 	if monster_sprite != null:
 		monster_sprite.visible = false
 
-func _spawn_scientists() -> void:
-	var points: Array = []
-	for row in ITEM_POSITIONS:
-		points.append(row["pos"])
-	points.append(Vector2(984, 1100))
-	var starts: Array = points.duplicate()
-	starts.sort_custom(func(a, b): return a.distance_to(guard.global_position) > b.distance_to(guard.global_position))
-	var names: Array = SCIENTIST_NAMES.duplicate()
-	names.shuffle()
-	scientists_total = mini(SCIENTIST_COUNT, starts.size())
-	for i in scientists_total:
-		var scientist = SCIENTIST_SCRIPT.new()
-		scientist.player = guard
-		scientist.map = map
-		scientist.waypoints = points
-		scientist.display_name = names[i % names.size()]
-		scientist.caught.connect(_on_scientist_caught)
-		$Hunters.add_child(scientist)
-		scientist.global_position = starts[i]
-
-func _on_scientist_caught(scientist) -> void:
-	scientists_caught += 1
-	_say("ПОЙМАН: %s (%d/%d).\nГолод отступает. Ненадолго." % [scientist.display_name, scientists_caught, scientists_total], 5.0)
-	if scientists_caught >= scientists_total:
-		phase_timer = minf(phase_timer, 4.0)
 
 func _start_sortie() -> void:
 	_clear_hunters()
@@ -647,6 +588,32 @@ func _death() -> void:
 	message_label.visible = true
 	message_label.text = "ДОСТУП АННУЛИРОВАН\nСОТРУДНИК НЕ ЧИСЛИТСЯ\n\nR — начать заново"
 
+func _on_quest_completed(id: String) -> void:
+	match id:
+		"elevator":
+			Quests.start("manual")
+		"manual":
+			Quests.start("computer")
+		"computer":
+			_start_panic()
+			Quests.start("gather")
+		"gather":
+			_start_night(1)
+			Quests.start("night1")
+		"night1":
+			_start_day2()
+			Quests.start("fortify")
+		"fortify":
+			_start_sortie()
+			Quests.start("sortie")
+		"sortie":
+			_start_night(2)
+			Quests.start("hunt")
+		"hunt":
+			_start_day3()
+		"night3":
+			_ending_hero()
+
 func _finish() -> void:
 	phase = "RESULT"
 	guard.active = false
@@ -659,6 +626,12 @@ func _finish() -> void:
 	else:
 		message_label.text = "НЕЙРОСЛОП И ДОГОВОР\nПод маской биооружия — блогер с кольцевой лампой.\nВ отчёте сказано, что это был тимбилдинг.\n\nR — заново"
 
+func _current_quest_title() -> String:
+	for id in Quests.active:
+		if not Quests.is_done(id):
+			return str(Quests.quests[id]["title"])
+	return ""
+	
 func _refresh() -> void:
 	status_label.text = ""
 	vitals_label.text = ("ПОЙМАНО %d/%d" % [scientists_caught, scientists_total]) if monster_mode else ("ПАТР %02d" % guard.ammo)
@@ -667,15 +640,10 @@ func _refresh() -> void:
 	var entry: Dictionary = _closest_action()
 	if not entry.is_empty():
 		objective_label.text = "[E] " + str(entry["label"])
+	elif phase == "ELEVATOR" and not elevator_arrived:
+		objective_label.text = ("Спуск: этаж -%d  ([E] — пропустить)" if allow_elevator_skip else "Спуск: этаж -%d") % elevator_floor
+	elif phase == "RESULT":
+		objective_label.text = "Итоги смены"
 	else:
-		match phase:
-			"ELEVATOR": objective_label.text = "Открыть двери лифта" if elevator_arrived else ("Спуск: этаж -%d  ([E] — пропустить)" if allow_elevator_skip else "Спуск: этаж -%d") % elevator_floor
-			"INTRO": objective_label.text = "Найти инструкцию"
-			"PANIC": objective_label.text = "Собрать припасы"
-			"NIGHT1", "NIGHT3": objective_label.text = "Пережить ночь"
-			"NIGHT2": objective_label.text = "Поймать учёных: %d/%d" % [scientists_caught, scientists_total]
-			"SORTIE": objective_label.text = "Добраться до щитка"
-			"DAY3": objective_label.text = "Задания: %d/3" % _quests_done()
-			"DAY2": objective_label.text = "Укрепить кабинет"
-			"RESULT": objective_label.text = "Итоги смены"
-			_: objective_label.text = "Исследовать комплекс"
+		var title: String = _current_quest_title()
+		objective_label.text = title if title != "" else "Исследовать комплекс"

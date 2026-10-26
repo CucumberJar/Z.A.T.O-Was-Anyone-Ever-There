@@ -1,8 +1,29 @@
 [gd_resource type="TileSet" format=3 uid="uid://ddvo1jlmmou6n"]
 
+[ext_resource type="Texture2D" uid="uid://l8e7ovvh8ek4" path="res://assets/indoor/Electro.png" id="1_3pl5c"]
 [ext_resource type="Texture2D" uid="uid://o7oevniui1uq" path="res://assets/indoor/sprites1.png" id="3_3pl5c"]
 [ext_resource type="Texture2D" uid="uid://b8vdsi711rclb" path="res://assets/indoor/flow.png" id="3_7o5fo"]
 [ext_resource type="Texture2D" uid="uid://c546g38r5fcax" path="res://assets/indoor/Button1.png" id="4_gnhll"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_o2ypi"]
+texture = ExtResource("1_3pl5c")
+texture_region_size = Vector2i(48, 48)
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+3:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+3:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_gnhll"]
 texture = ExtResource("3_3pl5c")
@@ -237,3 +258,4 @@ sources/5 = SubResource("TileSetAtlasSource_7o5fo")
 sources/6 = SubResource("TileSetAtlasSource_3pl5c")
 sources/2 = SubResource("TileSetAtlasSource_gnhll")
 sources/3 = SubResource("TileSetAtlasSource_x8ewc")
+sources/0 = SubResource("TileSetAtlasSource_o2ypi")
