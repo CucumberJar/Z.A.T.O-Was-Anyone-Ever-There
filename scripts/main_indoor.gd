@@ -30,29 +30,13 @@ const ITEM_POSITIONS := [
 	{"id":"I", "kind":"metal", "pos":Vector2(1608, 936)},
 	{"id":"J", "kind":"medkit", "pos":Vector2(1944, 840)},
 ]
-const INTERACTABLES := [
-	{"name":"blue", "pos":Vector2(360, 408), "label":"Синий стол"},
-	{"name":"red", "pos":Vector2(1032, 408), "label":"Красный стол / инструкция"},
-	{"name":"welder", "pos":Vector2(936, 600), "label":"Заваренная дверь"},
-	{"name":"robot", "pos":Vector2(840, 840), "label":"Кофейный робот"},
-	{"name":"teleport", "pos":Vector2(1944, 888), "label":"Телепорт"},
-	{"name":"super", "pos":Vector2(2064, 456), "label":"Суперкомпьютер"},
-	{"name":"reset", "pos":Vector2(2112, 528), "label":"Кнопка RESET"},
-	{"name":"office", "pos":Vector2(984, 1248), "label":"Рабочий стол / укрепления"},
-	{"name":"locker", "pos":Vector2(1128, 1248), "label":"Шкаф"},
-	{"name":"generator", "pos":Vector2(1944, 1176), "label":"Энергоузел / щиток"},
-	{"name":"terminal", "pos":Vector2(1560, 456), "label":"Служебный терминал"},
-]
 
-# Кабина и институт находятся в одной main_indoor.tscn, в разных частях карты.
-# Для перехода нужны только три координаты. Marker2D/PNG не требуются.
+
 @export_group("Катсцена / Позиции")
 @export var cabin_spawn_position: Vector2 = Vector2(3000.0, 1008.0)
-@export var cabin_door_position: Vector2 = Vector2(3000.0, 1107.0)
 @export var institute_arrival_position: Vector2 = Vector2(340.0, 1270.0)
 @export var cabin_camera_bounds: Rect2 = Rect2(-256.0, -256.0, 4096.0, 2304.0)
 @export var institute_camera_bounds: Rect2 = Rect2(0.0, 0.0, 2304.0, 1440.0)
-@export_range(24.0, 128.0, 1.0) var elevator_interaction_range: float = 66.0
 @export_group("Катсцена / Выход")
 @export var open_institute_elevator_door: bool = true
 
@@ -61,7 +45,6 @@ const INTERACTABLES := [
 @export var hide_main_lights_in_elevator: bool = false
 
 @export_group("Совместимость")
-# Не удаляйте, если в старой .tscn записан параметр movement_limits.
 @export var movement_limits: Rect2 = Rect2(0.0, 0.0, 2304.0, 1440.0)
 
 @export_group("Катсцена / Поездка")
@@ -70,16 +53,11 @@ const INTERACTABLES := [
 @export var allow_elevator_skip: bool = false
 @export_range(0.1, 2.0, 0.05) var elevator_fade_duration: float = 0.55
 @export_multiline var elevator_arrival_message: String = "ЛИФТ ПРИБЫЛ. ЭТАЖ -9: ОТДЕЛ «КОНТУР».\nПодойдите к двери и нажмите [E]."
-@export_multiline var elevator_exit_message: String = "РАСПРЕДЕЛЕНИЕ ПОДТВЕРЖДЕНО.\nИнструкцию ищите на красном столе."
 
 @export_group("Катсцена / Реплики")
-@export_range(0.0, 90.0, 0.1) var line_1_at: float = 0.4
-@export_multiline var line_1_text: String = "— О, вы наш новенький по распределению? Отлично, теперь наш отдел пополнился перспективным носильщиком кофе."
-@export_range(0.0, 90.0, 0.1) var line_2_at: float = 3.4
-@export_multiline var line_2_text: String = "— Хватит ныть, это шутка, у нас для этих целей есть робот. Он по должности выше вас: он из УМНОЙ техники."
-@export_range(0.0, 90.0, 0.1) var line_3_at: float = 6.6
-@export_multiline var line_3_text: String = "— Инструкцию и технику безопасности найдёте на красном столе."
-@export_range(1.0, 15.0, 0.5) var dialogue_show_seconds: float = 3.1
+@export_range(0.0, 90.0, 0.1) var line_1_at: float = 3.5
+@export_range(0.0, 90.0, 0.1) var line_2_at: float = 13.0
+@export_range(0.0, 90.0, 0.1) var line_3_at: float = 24.5
 
 @onready var guard = $Guard
 @onready var map = $Indoor
@@ -146,9 +124,9 @@ func _create_transition_overlay() -> void:
 
 func _elevator_script_lines() -> Array[Dictionary]:
 	var lines: Array[Dictionary] = [
-		{"at": line_1_at, "text": line_1_text},
-		{"at": line_2_at, "text": line_2_text},
-		{"at": line_3_at, "text": line_3_text},
+		{"at": line_1_at, "id": "intro"},
+		{"at": line_2_at, "id": "intro1"},
+		{"at": line_3_at, "id": "intro2"},
 	]
 	lines.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a["at"]) < float(b["at"]))
 	return lines
@@ -211,7 +189,7 @@ func _process(delta: float) -> void:
 				guard.take_damage(1)
 				_say("Воздух слишком сладкий. Фильтры на складе работают странно.", 3.0)
 	if phase in NIGHT_PHASES and is_hiding:
-		# Hostile creature still moves toward the office; hiding buys time, but is not a kill.
+	
 		pass
 	if phase == "DAY2" and not teleported and phase_timer <= 9.0:
 		teleported = true
@@ -268,9 +246,9 @@ func _update_elevator_ride(delta: float) -> void:
 	elevator_floor = 1 + mini(8, int(progress * 9.0))
 	var lines: Array[Dictionary] = _elevator_script_lines()
 	while elevator_line_index < lines.size() and t >= float(lines[elevator_line_index]["at"]):
-		var line_text: String = str(lines[elevator_line_index]["text"])
-		if not line_text.is_empty():
-			_say(line_text, dialogue_show_seconds)
+		var start_at: float = float(lines[elevator_line_index]["at"])
+		var next_at: float = float(lines[elevator_line_index + 1]["at"]) if elevator_line_index + 1 < lines.size() else elevator_ride_duration
+		_say(Dialogies.t(str(lines[elevator_line_index]["id"])), maxf(2.0, next_at - start_at))
 		elevator_line_index += 1
 	if t >= elevator_ride_duration:
 		elevator_arrived = true
@@ -306,7 +284,6 @@ func _transfer_from_cabin() -> void:
 func _finish_elevator_exit() -> void:
 	guard.active = true
 	elevator_leaving = false
-	_say(elevator_exit_message, 8.0)
 
 func _say(text: String, duration: float = 6.0) -> void:
 	radio_label.text = text
@@ -327,28 +304,29 @@ func _unhandled_input(event: InputEvent) -> void:
 func _closest_action() -> Dictionary:
 	if is_hiding:
 		return {"name":"locker", "pos":guard.global_position, "label":"Выйти из шкафа"}
-	if phase == "ELEVATOR":
-		if not elevator_arrived or elevator_leaving:
-			return {}
-		var door_at: Vector2 = cabin_door_position
-		if guard.global_position.distance_to(door_at) <= elevator_interaction_range:
-			return {"name": "elevator", "pos": door_at, "label": "Открыть двери лифта"}
+	var in_cabin: bool = phase == "ELEVATOR"
+	if in_cabin and (not elevator_arrived or elevator_leaving):
 		return {}
-	var best := 82.0
 	var entry: Dictionary = {}
-	for k in pickups.keys():
-		if phase == "ELEVATOR":
-			continue
-		var node: Sprite2D = pickups[k]
-		var dist: float = guard.global_position.distance_to(node.global_position)
-		if dist < best:
-			best = dist
-			entry = {"name":"pickup", "key":k, "pos":node.global_position, "label":"Подобрать предмет"}
-	for obj in INTERACTABLES:
-		var dist: float = guard.global_position.distance_to(obj["pos"])
-		if dist < best:
-			best = dist
-			entry = obj
+	if not in_cabin:
+		var best_pickup := 82.0
+		for k in pickups.keys():
+			var node: Sprite2D = pickups[k]
+			var dist: float = guard.global_position.distance_to(node.global_position)
+			if dist < best_pickup:
+				best_pickup = dist
+				entry = {"name":"pickup", "key":k, "pos":node.global_position, "label":"Подобрать предмет"}
+	if entry.is_empty():
+		var best_zone := INF
+		for zone in get_tree().get_nodes_in_group("interactables"):
+			if not zone.player_inside:
+				continue
+			if (zone.action == "elevator") != in_cabin:
+				continue
+			var zone_dist: float = guard.global_position.distance_to(zone.global_position)
+			if zone_dist < best_zone:
+				best_zone = zone_dist
+				entry = {"name": zone.action, "pos": zone.global_position, "label": zone.label, "node": zone}
 	return entry
 
 func _interact() -> void:
@@ -365,6 +343,10 @@ func _interact() -> void:
 	match key:
 		"elevator":
 			_open_elevator_door()
+		"storage_table":
+			_say(Dialogies.t("storage_door"),5.0)
+		"storage_table":
+			_say(Dialogies.t("storage_door"),5.0)	
 		"pickup":
 			var item_id: String = str(entry["key"])
 			var item_kind: String = ""
@@ -380,10 +362,6 @@ func _interact() -> void:
 				"medkit": medicine += 1; guard.health = mini(3, guard.health + 1)
 				"ammo": guard.ammo += 6
 			_say("Получено: %s. Снабжение не подтверждает вашу личность." % item_kind.to_upper(), 3.5)
-		"blue": _say("— СИНИЙ стол? Где берут таких альтернативно одарённых?\n— Я сказал: НА КРАСНОМ!", 6.0)
-		"red":
-			has_manual = true
-			_say("ИНСТРУКЦИЯ 12-Б: A=04, Б=07, В=02; выключить канал обратной связи.\nПожалуйста, прочтите это ДО катастрофы. Форма ознакомления потеряна.", 8.0)
 		"welder": _say("НАДПИСЬ НА СТЕКЛЕ: «Тебе открыты все двери».\nПо факту дверь заварена намертво.", 6.0)
 		"robot": _say("Кофейный робот / сварщик дверей. ИИ второго класса.\nВаш непосредственный руководитель.", 6.0)
 		"teleport": _say("— Телепортации не существует! Это декорация для инвесторов!", 5.0)
@@ -443,6 +421,11 @@ func _interact() -> void:
 				_say("СИСТЕМА КОД: отклонение исправлено.\nВ архиве Воркуты-5 за 1986 год обнаружена недоступная запись.", 7.0)
 			else:
 				_say("Архив Воркута-5 / 1986. Данные засекречены.\nВнимание: оператор отмечен как восприимчивый к Коду.", 7.0)
+		_:
+			var zone = entry.get("node")
+			if zone != null and zone.text != "":
+				_say(zone.text, zone.duration)
+  
 
 func _open_supercomputer() -> void:
 	if computer_open:
