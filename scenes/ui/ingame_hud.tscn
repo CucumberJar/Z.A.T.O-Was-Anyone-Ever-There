@@ -4,7 +4,6 @@
 [ext_resource type="Texture2D" uid="uid://igr2f8texl6y" path="res://assets/ui/healt2.png" id="3_28rw6"]
 [ext_resource type="Texture2D" uid="uid://cysmwm4pshd85" path="res://assets/ui/staff_portrait.png" id="3_staff"]
 [ext_resource type="Texture2D" uid="uid://drbplt16simb1" path="res://assets/ui/healt.png" id="4_cibmn"]
-[ext_resource type="Texture2D" uid="uid://ptm7p4vucwtm" path="res://assets/ui/gun_icon.png" id="4_gun"]
 [ext_resource type="Texture2D" uid="uid://dsp4sb1116au5" path="res://assets/ui/dialogue_plate.png" id="5_dialog"]
 [ext_resource type="Texture2D" uid="uid://c1doufscq5kte" path="res://assets/ui/pause_notebook_clean_v060.png" id="7_pause"]
 [ext_resource type="FontFile" uid="uid://c35xg7jni7v5p" path="res://assets/fonts/PixeloidSans.ttf" id="7_twyrg"]
@@ -28,17 +27,6 @@ anchors_preset = 0
 [node name="Summary" type="Label" parent="Info" unique_id=217846595]
 layout_mode = 0
 
-[node name="GunIcon" type="TextureRect" parent="." unique_id=1130684654]
-texture_filter = 1
-offset_left = 157.0
-offset_top = 10.0
-offset_right = 193.0
-offset_bottom = 38.0
-mouse_filter = 2
-texture = ExtResource("4_gun")
-expand_mode = 1
-stretch_mode = 5
-
 [node name="Health" type="TextureProgressBar" parent="." unique_id=311672053]
 offset_left = 11.0
 offset_top = 9.0
@@ -57,10 +45,10 @@ tint_progress = Color(0.7882353, 0.34901962, 0.49019608, 1)
 [node name="VitalPanel" type="Control" parent="." unique_id=1471205812]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 197.0
-offset_top = 11.0
-offset_right = 291.0
-offset_bottom = 43.0
+offset_left = 160.0
+offset_top = 16.0
+offset_right = 254.0
+offset_bottom = 48.0
 mouse_filter = 2
 
 [node name="Vitals" type="Label" parent="VitalPanel" unique_id=69367075]
@@ -74,6 +62,7 @@ offset_left = -0.024000168
 offset_top = -0.007999897
 offset_right = -0.022003174
 offset_bottom = 0.01599884
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "00"
 
 [node name="PhasePanel" type="Control" parent="." unique_id=35541400]
@@ -88,14 +77,17 @@ mouse_filter = 2
 [node name="Phase" type="Label" parent="PhasePanel" unique_id=1268297175]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.07700001
-anchor_right = 0.646
+anchor_left = -0.95400006
+anchor_right = -0.13800001
 anchor_bottom = 1.3330001
-offset_left = -0.0050005913
+offset_left = 0.010005951
 offset_top = 1.0
-offset_right = 0.0099983215
+offset_right = -0.029994965
 offset_bottom = 0.0059986115
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "1987"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="TargetPanel" type="PanelContainer" parent="." unique_id=1024302999]
 offset_left = 406.0
@@ -109,21 +101,27 @@ offset_left = 412.0
 offset_top = 10.0
 offset_right = 649.0
 offset_bottom = 33.0
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "ЗАДАНИЕ / СЕКТОР «КОНТУР»"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Target" type="Label" parent="." unique_id=1864397148]
 offset_left = 417.0
 offset_top = 29.0
 offset_right = 627.0
 offset_bottom = 52.0
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "Открыть лифт"
+horizontal_alignment = 1
+vertical_alignment = 1
 autowrap_mode = 2
 
 [node name="RadioPanel" type="Control" parent="." unique_id=224615204]
 layout_mode = 3
 anchors_preset = 0
 offset_left = 46.0
-offset_top = 229.0
+offset_top = 203.0
 offset_right = 642.0
 offset_bottom = 362.0
 mouse_filter = 2
@@ -137,7 +135,7 @@ anchor_top = -0.43600002
 anchor_right = 0.99700004
 anchor_bottom = 1.0380001
 offset_left = -0.10799408
-offset_top = -0.011997223
+offset_top = 12.324005
 offset_right = -0.21203613
 offset_bottom = -0.054016113
 mouse_filter = 2
@@ -158,11 +156,17 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Radio" type="Label" parent="RadioPanel" unique_id=501612485]
-layout_mode = 0
-offset_left = -6.0
-offset_top = 39.0
-offset_right = 392.0
-offset_bottom = 93.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.010000001
+anchor_top = 0.34
+anchor_right = 0.83400005
+anchor_bottom = 0.711
+offset_left = -0.039999485
+offset_top = -0.060001373
+offset_right = -0.06402588
+offset_bottom = -0.0490036
+theme_override_fonts/font = ExtResource("7_twyrg")
 autowrap_mode = 2
 
 [node name="RadioTitle" type="Label" parent="RadioPanel" unique_id=1318955197]
@@ -249,124 +253,146 @@ stretch_mode = 5
 
 [node name="Resume" type="Button" parent="PauseRoot" unique_id=1244600016]
 layout_mode = 0
-offset_left = 97.0
-offset_top = 87.0
-offset_right = 278.0
-offset_bottom = 117.0
+offset_left = 127.0
+offset_top = 79.0
+offset_right = 308.0
+offset_bottom = 110.0
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "ПРОДОЛЖИТЬ"
 
 [node name="Save" type="Button" parent="PauseRoot" unique_id=1749839316]
 layout_mode = 0
-offset_left = 97.0
-offset_top = 127.0
-offset_right = 278.0
-offset_bottom = 157.0
+offset_left = 128.0
+offset_top = 120.0
+offset_right = 309.0
+offset_bottom = 151.0
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "СОХРАНИТЬ"
 
 [node name="Load" type="Button" parent="PauseRoot" unique_id=1273344067]
 layout_mode = 0
-offset_left = 97.0
-offset_top = 167.0
-offset_right = 278.0
-offset_bottom = 197.0
+offset_left = 128.0
+offset_top = 168.0
+offset_right = 309.0
+offset_bottom = 199.0
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "ЗАГРУЗИТЬ"
 
 [node name="Settings" type="Button" parent="PauseRoot" unique_id=1455451954]
 layout_mode = 0
-offset_left = 97.0
-offset_top = 207.0
-offset_right = 278.0
-offset_bottom = 237.0
+offset_left = 128.0
+offset_top = 208.0
+offset_right = 309.0
+offset_bottom = 239.0
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "НАСТРОЙКИ"
 
 [node name="ToMenu" type="Button" parent="PauseRoot" unique_id=1928823151]
 layout_mode = 0
-offset_left = 97.0
-offset_top = 247.0
-offset_right = 278.0
-offset_bottom = 277.0
+offset_left = 128.0
+offset_top = 248.0
+offset_right = 309.0
+offset_bottom = 279.0
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "В ГЛАВНОЕ МЕНЮ"
 
 [node name="PauseHint" type="Label" parent="PauseRoot" unique_id=745477822]
 layout_mode = 0
-offset_left = 335.0
-offset_top = 265.0
-offset_right = 561.0
-offset_bottom = 302.0
+offset_left = 373.0
+offset_top = 288.0
+offset_right = 599.0
+offset_bottom = 325.0
+rotation = -0.05235988
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "ЛИЧНОЕ ДЕЛО / 1987"
 horizontal_alignment = 1
 autowrap_mode = 2
 
 [node name="DossierPage" type="Control" parent="PauseRoot" unique_id=51645538]
+visible = false
 anchors_preset = 0
+offset_left = 30.0
+offset_top = -34.0
+offset_right = 118.27455
+offset_bottom = 30.3162
+rotation = 0.075049154
 mouse_filter = 2
 
 [node name="BadgeHeader" type="Label" parent="PauseRoot/DossierPage" unique_id=1186342282]
 layout_mode = 0
-offset_left = 359.0
-offset_top = 116.0
-offset_right = 568.0
-offset_bottom = 134.0
+offset_left = 352.0
+offset_top = 112.0
+offset_right = 583.0
+offset_bottom = 132.0
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "З.А.Т.О. / ПРОПУСК № 317-Б"
 
 [node name="BadgeDetails" type="Label" parent="PauseRoot/DossierPage" unique_id=1404929243]
 layout_mode = 0
-offset_left = 360.0
-offset_top = 151.0
-offset_right = 511.0
-offset_bottom = 241.0
+offset_left = 347.8006
+offset_top = 144.32863
+offset_right = 533.8006
+offset_bottom = 245.32863
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "ОТДЕЛ: СЛУЖБА СБ
 ОБЪЕКТ: ВАРКУТА-3
 ГОД: 1987
-СТАТУС: НЕ ЧИСЛИТСЯ"
+СТАТУС: НОВЕНЬКИЙ"
 
 [node name="Portrait" type="TextureRect" parent="PauseRoot/DossierPage" unique_id=1408339839]
 texture_filter = 1
 layout_mode = 0
-offset_left = 520.0
-offset_top = 152.0
-offset_right = 574.0
-offset_bottom = 222.0
+offset_left = 493.38965
+offset_top = 133.38173
+offset_right = 555.38965
+offset_bottom = 211.38171
 mouse_filter = 2
 texture = ExtResource("3_staff")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="SettingsPage" type="Control" parent="PauseRoot" unique_id=1642980295]
-visible = false
 anchors_preset = 0
+offset_transform_enabled = true
 mouse_filter = 2
 
 [node name="SettingsTitle" type="Label" parent="PauseRoot/SettingsPage" unique_id=65514229]
 layout_mode = 0
-offset_left = 362.0
-offset_top = 124.0
-offset_right = 570.0
-offset_bottom = 147.0
+offset_left = 383.99997
+offset_top = 135.99998
+offset_right = 592.0
+offset_bottom = 158.99998
+rotation = 0.075049154
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "ПАРАМЕТРЫ"
 
 [node name="VolumeTitle" type="Label" parent="PauseRoot/SettingsPage" unique_id=39539547]
 layout_mode = 0
-offset_left = 360.0
-offset_top = 158.0
-offset_right = 544.0
-offset_bottom = 178.0
+offset_left = 383.99997
+offset_top = 168.0
+offset_right = 568.0
+offset_bottom = 191.0
+rotation = 0.075049154
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "ГРОМКОСТЬ"
 
 [node name="Volume" type="HSlider" parent="PauseRoot/SettingsPage" unique_id=233281703]
 layout_mode = 0
-offset_left = 362.0
-offset_top = 182.0
-offset_right = 535.0
-offset_bottom = 202.0
+offset_left = 376.0
+offset_top = 184.0
+offset_right = 549.0
+offset_bottom = 204.0
+rotation = 0.075049154
 max_value = 1.0
 step = 0.05
 value = 0.8
 
 [node name="Fullscreen" type="CheckButton" parent="PauseRoot/SettingsPage" unique_id=83930471]
 layout_mode = 0
-offset_left = 357.0
-offset_top = 213.0
-offset_right = 567.0
-offset_bottom = 243.0
+offset_left = 376.0
+offset_top = 199.99997
+offset_right = 586.0
+offset_bottom = 230.99997
+rotation = 0.075049154
+theme_override_fonts/font = ExtResource("7_twyrg")
 text = "ПОЛНЫЙ ЭКРАН"

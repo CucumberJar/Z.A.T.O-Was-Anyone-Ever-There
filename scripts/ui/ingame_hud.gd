@@ -3,25 +3,76 @@ extends CanvasLayer
 const SKIN = preload("res://scripts/ui/ui_skin.gd")
 const SAVE_PATH := "user://zato_slot1.json"
 
+# Источник определяется автоматически по тексту. Для нестандартных реплик:
+# HUD.set_next_dialogue_source("computer") перед game._say(...).
+@export_group("Диалоги / Анимация")
+@export_range(0.0, 0.8, 0.01) var appear_seconds: float = 0.24
+@export_range(0.0, 0.8, 0.01) var disappear_seconds: float = 0.20
+@export_range(5.0, 100.0, 1.0) var characters_per_second: float = 42.0
+@export_range(0.0, 32.0, 1.0) var slide_distance: float = 10.0
+
+@export_group("Диалоги / Фильтры")
+@export_range(0.0, 0.35, 0.01) var scanline_intensity: float = 0.10
+@export_range(0.0, 1.0, 0.05) var dialogue_filter_strength: float = 0.85
+@export_range(0.0, 1.0, 0.05) var name_filter_strength: float = 1.0
+
 @onready var radio_label: Label = $RadioPanel/Radio
 @onready var radio_panel: Control = $RadioPanel
+@onready var radio_title: Label = $RadioPanel/RadioTitle
+@onready var radio_paper: TextureRect = $RadioPanel/Paper
+@onready var radio_arrow: Label = $RadioPanel/Arrow
 @onready var final_message: Label = $Message
 @onready var pause_root: Control = $PauseRoot
 @onready var settings_page: Control = $PauseRoot/SettingsPage
 @onready var dossier_page: Control = $PauseRoot/DossierPage
-@onready var hp_bar: TextureProgressBar = $Health
+@onready var hp_bar: TextureProgressBar = get_node_or_null("Health") as TextureProgressBar
+
+# Фильтр применяется отдельно к текстуре реплики и табличке имени.
+# Без случайного шума и TIME: никакого мерцания на каждом кадре.
+const FILTER_SHADER_CODE := """
+shader_type canvas_item;
+
+uniform vec4 tone : source_color = vec4(1.0);
+uniform float monochrome : hint_range(0.0, 1.0) = 0.0;
+uniform float lines : hint_range(0.0, 0.35) = 0.0;
+
+void fragment() {
+    vec4 pixel = COLOR;
+    float gray = dot(pixel.rgb, vec3(0.299, 0.587, 0.114));
+    pixel.rgb = mix(pixel.rgb, vec3(gray), monochrome);
+    pixel.rgb *= tone.rgb;
+    // Статичные экранные строки — только для электронных сообщений.
+    float stripe = step(1.0, mod(floor(FRAGCOORD.y), 3.0));
+    pixel.rgb *= 1.0 - lines * (1.0 - stripe);
+    pixel.a *= tone.a;
+    COLOR = pixel;
+}
+"""
+
+var _paper_material: ShaderMaterial
+var _title_material: ShaderMaterial
+var _base_panel_position: Vector2
+var _panel_tween: Tween
+var _observed_text: String = ""
+var _printing_time: float = 0.0
+var _dialogue_open: bool = false
+var _typing_finished: bool = true
+var _source_for_next_line: String = ""
+var last_hp: int = -1
+var hp_tween: Tween
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	SKIN.game_panel($TargetPanel)
 	SKIN.game_panel($MessagePanel)
 	SKIN.label($VitalPanel/Vitals, 13, SKIN.LIGHT)
-	SKIN.label($PhasePanel/Phase, 11, SKIN.MUTED)
+	if has_node("PhasePanel/Phase"):
+		SKIN.label($PhasePanel/Phase, 11, SKIN.MUTED)
 	SKIN.label($TargetTitle, 9, SKIN.MUTED)
 	SKIN.label($Target, 11, SKIN.LIGHT)
 	SKIN.label(radio_label, 12, SKIN.LIGHT)
-	SKIN.label($RadioPanel/RadioTitle, 11, SKIN.LIGHT)
-	SKIN.label($RadioPanel/Arrow, 9, SKIN.MUTED)
+	SKIN.label(radio_title, 11, SKIN.LIGHT)
+	SKIN.label(radio_arrow, 9, SKIN.MUTED)
 	SKIN.label(final_message, 18, SKIN.LIGHT)
 	SKIN.label($PauseRoot/DossierPage/BadgeHeader, 10, SKIN.LIGHT)
 	SKIN.label($PauseRoot/DossierPage/BadgeDetails, 11, SKIN.INK)
@@ -45,28 +96,202 @@ func _ready() -> void:
 	pause_root.visible = false
 	final_message.visible = false
 
-func _process(_delta: float) -> void:
-	var message_active: bool = not radio_label.text.is_empty()
-	radio_panel.visible = message_active and not pause_root.visible
+	var filter_shader := Shader.new()
+	filter_shader.code = FILTER_SHADER_CODE
+	_paper_material = ShaderMaterial.new()
+	_paper_material.shader = filter_shader
+	_title_material = ShaderMaterial.new()
+	_title_material.shader = filter_shader
+	radio_paper.material = _paper_material
+	radio_title.material = _title_material
+	_base_panel_position = radio_panel.position
+	radio_panel.visible = false
+	radio_panel.modulate.a = 0.0
+	radio_arrow.visible = false
+	radio_label.visible_characters = -1
+	if not radio_label.text.is_empty():
+		_start_dialogue(radio_label.text)
+
+func _process(delta: float) -> void:
+	var content: String = radio_label.text
+	if content != _observed_text:
+		if content.is_empty():
+			_end_dialogue()
+		else:
+			_start_dialogue(content)
+
+	radio_panel.visible = _dialogue_open and not pause_root.visible
 	$MessagePanel.visible = final_message.visible
-	if message_active:
-		_update_dialogue_speaker()
+
+	if not get_tree().paused and not _typing_finished and not _observed_text.is_empty():
+		_printing_time += delta
+		# get_total_character_count() omits spaces/newlines; use codepoint count.
+		var total: int = radio_label.text.length()
+		radio_label.visible_characters = mini(total, int(_printing_time * characters_per_second))
+		if radio_label.visible_characters >= total:
+			radio_label.visible_characters = -1
+			_typing_finished = true
+			radio_arrow.visible = true
+
 	var game: Variant = get_parent()
 	if game != null and is_instance_valid(game.guard):
 		var hp: int = clampi(game.guard.health, 0, 3)
-		if has_node("Health"):
-			$Health.value = hp
+		if hp != last_hp:
+			animate_health(hp)
 
-func _update_dialogue_speaker() -> void:
-	var content: String = radio_label.text
+func animate_health(new_hp: int) -> void:
+	if last_hp == -1:
+		last_hp = new_hp
+		hp_bar.value = new_hp
+		return
+
+	var damaged := new_hp < last_hp
+	last_hp = new_hp
+
+	if hp_tween and hp_tween.is_running():
+		hp_tween.kill()
+
+	hp_tween = create_tween()
+	hp_tween.tween_property(
+		hp_bar, "value", float(new_hp), 0.35
+	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+	if damaged:
+		hp_bar.modulate = Color(1.0, 0.0, 0.0, 1.0)
+		hp_tween.parallel().tween_property(
+			hp_bar, "modulate", Color.WHITE, 0.4
+		)
+# Вызывай перед _say(), если строку невозможно распознать по префиксу.
+# Допустимые значения: service, officer, hr, computer, archive, alert.
+func set_next_dialogue_source(source: String) -> void:
+	_source_for_next_line = source.to_lower()
+
+func _start_dialogue(content: String) -> void:
+	_observed_text = content
+	_printing_time = 0.0
+	_typing_finished = false
+	radio_label.visible_characters = 0
+	radio_arrow.visible = false
+
+	var source: String = _detect_source(content)
+	if not _source_for_next_line.is_empty():
+		source = _source_for_next_line
+		_source_for_next_line = ""
+	_apply_dialogue_style(source)
+
+	if _panel_tween != null and _panel_tween.is_running():
+		_panel_tween.kill()
+	_dialogue_open = true
+	radio_panel.visible = not pause_root.visible
+	radio_panel.position = _base_panel_position + Vector2(0.0, slide_distance)
+	radio_panel.modulate.a = 0.0
+	_panel_tween = create_tween().set_parallel(true)
+	_panel_tween.tween_property(radio_panel, "position", _base_panel_position, appear_seconds).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_panel_tween.tween_property(radio_panel, "modulate:a", 1.0, appear_seconds)
+
+func _end_dialogue() -> void:
+	_observed_text = ""
+	_typing_finished = true
+	radio_arrow.visible = false
+	radio_label.visible_characters = -1
+	if not _dialogue_open:
+		return
+	if _panel_tween != null and _panel_tween.is_running():
+		_panel_tween.kill()
+	_panel_tween = create_tween().set_parallel(true)
+	_panel_tween.tween_property(radio_panel, "position", _base_panel_position + Vector2(0.0, slide_distance), disappear_seconds).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	_panel_tween.tween_property(radio_panel, "modulate:a", 0.0, disappear_seconds)
+	_panel_tween.finished.connect(_finish_dialogue_hide)
+
+func _finish_dialogue_hide() -> void:
+	if _observed_text.is_empty():
+		_dialogue_open = false
+		radio_panel.visible = false
+
+func _detect_source(content: String) -> String:
+	var line: String = content.strip_edges().to_upper()
+	if line.begins_with("HR:") or line.begins_with("ОТДЕЛ КАДРОВ"):
+		return "hr"
+	if line.begins_with("СУПЕРКОМПЬЮТЕР") or line.begins_with("СИСТЕМА КОД") or line.begins_with("RESET") or line.begins_with("99.99%"):
+		return "computer"
+	if line.begins_with("ЛИФТ") or line.begins_with("—") or line.begins_with("ДВЕРИ ЛИФТА"):
+		return "officer"
+	if line.begins_with("АРХИВ") or line.begins_with("СЛУЖЕБНЫЙ АРХИВ") or line.begins_with("ИНСТРУКЦИЯ"):
+		return "archive"
+	if line.begins_with("ТРЕВОГА") or line.begins_with("ПРОТОКОЛ") or line.begins_with("[ТЕЛЕПОРТАЦИЯ"):
+		return "alert"
+	return "service"
+
+func _apply_dialogue_style(source: String) -> void:
+	# Параметры: имя, цвет бумаги, цвет имени, цвет реплики, цвет подписи,
+	# насыщенность бумаги, насыщенность имени, полосы бумаги, полосы имени.
 	var title: String = "СЛУЖЕБНОЕ СООБЩЕНИЕ"
-	if content.begins_with("ЛИФТ") or content.begins_with("—"):
-		title = "СТАРШИЙ СОТРУДНИК"
-	elif content.begins_with("HR:"):
-		title = "ОТДЕЛ КАДРОВ"
-	elif content.begins_with("СУПЕРКОМПЬЮТЕР"):
-		title = "ВЫЧИСЛИТЕЛЬНЫЙ ЦЕНТР"
-	$RadioPanel/RadioTitle.text = title
+	var paper_tint := Color(0.92, 0.92, 0.91)
+	var name_tint := Color(0.95, 0.87, 0.74)
+	var text_color := Color(0.92, 0.90, 0.84)
+	var name_color := Color(0.92, 0.88, 0.77)
+	var paper_mono: float = 0.25
+	var name_mono: float = 0.10
+	var paper_lines: float = 0.0
+	var name_lines: float = 0.0
+
+	match source:
+		"officer":
+			title = "СТАРШИЙ СОТРУДНИК"
+			paper_tint = Color(0.93, 0.87, 0.72)
+			name_tint = Color(1.0, 0.76, 0.45)
+			text_color = Color(1.0, 0.93, 0.79)
+			name_color = Color(1.0, 0.93, 0.78)
+			paper_mono = 0.35
+			name_mono = 0.10
+		"hr":
+			title = "ОТДЕЛ КАДРОВ"
+			paper_tint = Color(0.97, 0.78, 0.79)
+			name_tint = Color(0.94, 0.49, 0.57)
+			text_color = Color(1.0, 0.88, 0.87)
+			name_color = Color(1.0, 0.93, 0.93)
+			paper_mono = 0.16
+			name_mono = 0.05
+		"computer":
+			title = "ВЫЧИСЛИТЕЛЬНЫЙ ЦЕНТР"
+			paper_tint = Color(0.64, 0.92, 0.84)
+			name_tint = Color(0.38, 0.78, 0.68)
+			text_color = Color(0.77, 1.0, 0.91)
+			name_color = Color(0.91, 1.0, 0.96)
+			paper_mono = 0.65
+			name_mono = 0.45
+			paper_lines = scanline_intensity
+			name_lines = scanline_intensity * 0.7
+		"archive":
+			title = "СЕКРЕТНЫЙ АРХИВ"
+			paper_tint = Color(0.94, 0.85, 0.69)
+			name_tint = Color(0.69, 0.55, 0.39)
+			text_color = Color(0.99, 0.92, 0.76)
+			name_color = Color(1.0, 0.95, 0.84)
+			paper_mono = 0.60
+			name_mono = 0.35
+		"alert":
+			title = "АВАРИЙНЫЙ ПРОТОКОЛ"
+			paper_tint = Color(0.93, 0.49, 0.47)
+			name_tint = Color(0.75, 0.23, 0.27)
+			text_color = Color(1.0, 0.87, 0.83)
+			name_color = Color(1.0, 0.95, 0.88)
+			paper_mono = 0.18
+			name_mono = 0.05
+			paper_lines = scanline_intensity * 0.45
+		_:
+			title = "СЛУЖЕБНОЕ СООБЩЕНИЕ"
+
+	radio_title.text = title
+	radio_label.add_theme_color_override("font_color", text_color)
+	radio_title.add_theme_color_override("font_color", name_color)
+	radio_arrow.add_theme_color_override("font_color", text_color)
+	_paper_material.set_shader_parameter("tone", Color.WHITE.lerp(paper_tint, dialogue_filter_strength))
+	_paper_material.set_shader_parameter("monochrome", paper_mono * dialogue_filter_strength)
+	_paper_material.set_shader_parameter("lines", paper_lines)
+	_title_material.set_shader_parameter("tone", Color.WHITE.lerp(name_tint, name_filter_strength))
+	_title_material.set_shader_parameter("monochrome", name_mono * name_filter_strength)
+	_title_material.set_shader_parameter("lines", name_lines)
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey:

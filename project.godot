@@ -20,6 +20,7 @@ config/icon="res://assets/icon.png"
 
 Quests="*uid://bs3i3iitfc5gp"
 Dialogies="*uid://q5xuksg7ynnk"
+AudioDirector="*uid://c5n8g8vd6hidj"
 
 [display]
 

@@ -68,6 +68,7 @@ const ITEM_POSITIONS := [
 @onready var message_label: Label = $HUD/Message
 @onready var vitals_label: Label = $HUD/VitalPanel/Vitals
 @onready var phase_label: Label = $HUD/PhasePanel/Phase
+@onready var fog_of_war: Node = get_node_or_null("FogOfWar")
 
 var transition_layer: CanvasLayer
 var transition_veil: ColorRect
@@ -139,6 +140,7 @@ func _ready() -> void:
 	guard.weapon_enabled = false
 	# Всё происходит в main_indoor.tscn, без смены сцены.
 	_create_transition_overlay()
+	_update_hunting_fog()
 	guard.travel_to(cabin_spawn_position, cabin_camera_bounds)
 	guard.get_node("Camera2D").zoom = Vector2(1, 1)
 	guard.active = false  # герой стоит в кабине, пока лифт не приедет
@@ -154,7 +156,15 @@ func _ready() -> void:
 	_say("ЛИФТ / СЕКРЕТНЫЙ ИНСТИТУТ / 1987\nСпуск на рабочий уровень...", 3.0)
 	_refresh()
 
+# Fog is active only when IT hunts the human: nights 1 and 3.
+# The player becomes IT during NIGHT2, so visibility is normal then.
+func _update_hunting_fog() -> void:
+	if fog_of_war == null:
+		return
+	fog_of_war.set("fog_enabled", phase == "NIGHT1" or phase == "NIGHT3")
+
 func _process(delta: float) -> void:
+	_update_hunting_fog()
 	if computer_open:
 		return
 	radio_timer = maxf(radio_timer - delta, 0.0)
