@@ -24,7 +24,7 @@ var walk_time := 0.0
 
 func _ready() -> void:
 	collision_layer = 8
-	collision_mask = 4
+	collision_mask = 5
 	var shape := CollisionShape2D.new()
 	var circle := CircleShape2D.new()
 	circle.radius = 9.0

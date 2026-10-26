@@ -13,6 +13,7 @@ diffuse_texture = ExtResource("2_guard")
 normal_texture = ExtResource("3_guard_normal")
 
 [node name="Guard" type="CharacterBody2D" unique_id=206261510]
+collision_layer = 128
 collision_mask = 6
 script = ExtResource("1_script")
 
@@ -53,6 +54,7 @@ texture_scale = 0.28
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1881986763]
 position = Vector2(0, -20)
+limit_enabled = false
 
 [node name="Flashlight" type="PointLight2D" parent="." unique_id=1459507131]
 color = Color(0.72, 0.83, 1, 1)

@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://cegp84k612a3b"]
+
+[ext_resource type="Script" uid="uid://dxvfpqyev8p1l" path="res://scripts/fog_of_war.gd" id="1_j5xl7"]
+
+[node name="FogOfWar" type="CanvasLayer" unique_id=148604110]
+layer = 0
+script = ExtResource("1_j5xl7")
+
+[node name="Overlay" type="ColorRect" parent="." unique_id=417050529]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2

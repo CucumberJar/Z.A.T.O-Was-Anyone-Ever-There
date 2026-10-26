@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b7y7pgid6b78"
-path="res://.godot/imported/tunnel_Bunker_B2.png-0bb60d030cf90634f86679f54aff01e5.ctex"
+uid="uid://c33dr1alg5qp0"
+path="res://.godot/imported/sprites1.png-d74bb47a5c1f1ee5174eebddf5b14461.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/indoor/source_tilesets/tunnel_Bunker_B2.png"
-dest_files=["res://.godot/imported/tunnel_Bunker_B2.png-0bb60d030cf90634f86679f54aff01e5.ctex"]
+source_file="res://assets/lighting/sprites1.png"
+dest_files=["res://.godot/imported/sprites1.png-d74bb47a5c1f1ee5174eebddf5b14461.ctex"]
 
 [params]
 

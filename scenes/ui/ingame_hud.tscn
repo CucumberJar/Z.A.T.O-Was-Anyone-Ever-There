@@ -154,7 +154,6 @@ offset_top = -127.0
 offset_right = 90.0
 offset_bottom = 55.0
 mouse_filter = 2
-texture = ExtResource("3_staff")
 expand_mode = 1
 stretch_mode = 5
 

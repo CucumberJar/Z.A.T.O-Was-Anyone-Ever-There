@@ -16,12 +16,6 @@ const NIGHT_DURATION := 40.0
 const DAY_DURATION := 60.0
 const SORTIE_DURATION := 12.0
 const QUESTS_TO_STAY_HUMAN := 2
-const ELEVATOR_RIDE_DURATION := 20.0
-const ELEVATOR_LINES := [
-	{"at": 0.4, "text": "— О, вы наш новенький по распределению? Отлично, теперь наш отдел пополнился перспективным носильщиком кофе."},
-	{"at": 3.4, "text": "— Хватит ныть, это шутка, у нас для этих целей есть робот. Он по должности выше вас: он из УМНОЙ техники."},
-	{"at": 6.6, "text": "— Инструкцию и технику безопасности найдёте на красном столе."},
-]
 const NIGHT_PHASES := ["NIGHT1", "NIGHT2", "NIGHT3"]
 const TIMED_PHASES := ["PANIC", "NIGHT1", "DAY2", "SORTIE", "NIGHT2", "DAY3", "NIGHT3"]
 const ITEM_POSITIONS := [
@@ -36,11 +30,56 @@ const ITEM_POSITIONS := [
 	{"id":"I", "kind":"metal", "pos":Vector2(1608, 936)},
 	{"id":"J", "kind":"medkit", "pos":Vector2(1944, 840)},
 ]
+const INTERACTABLES := [
+	{"name":"blue", "pos":Vector2(360, 408), "label":"Синий стол"},
+	{"name":"red", "pos":Vector2(1032, 408), "label":"Красный стол / инструкция"},
+	{"name":"welder", "pos":Vector2(936, 600), "label":"Заваренная дверь"},
+	{"name":"robot", "pos":Vector2(840, 840), "label":"Кофейный робот"},
+	{"name":"teleport", "pos":Vector2(1944, 888), "label":"Телепорт"},
+	{"name":"super", "pos":Vector2(2064, 456), "label":"Суперкомпьютер"},
+	{"name":"reset", "pos":Vector2(2112, 528), "label":"Кнопка RESET"},
+	{"name":"office", "pos":Vector2(984, 1248), "label":"Рабочий стол / укрепления"},
+	{"name":"locker", "pos":Vector2(1128, 1248), "label":"Шкаф"},
+	{"name":"generator", "pos":Vector2(1944, 1176), "label":"Энергоузел / щиток"},
+	{"name":"terminal", "pos":Vector2(1560, 456), "label":"Служебный терминал"},
+]
 
+# Кабина и институт находятся в одной main_indoor.tscn, в разных частях карты.
+# Для перехода нужны только три координаты. Marker2D/PNG не требуются.
+@export_group("Катсцена / Позиции")
+@export var cabin_spawn_position: Vector2 = Vector2(3000.0, 1008.0)
+@export var cabin_door_position: Vector2 = Vector2(3000.0, 1107.0)
+@export var institute_arrival_position: Vector2 = Vector2(340.0, 1270.0)
+@export var cabin_camera_bounds: Rect2 = Rect2(-256.0, -256.0, 4096.0, 2304.0)
+@export var institute_camera_bounds: Rect2 = Rect2(0.0, 0.0, 2304.0, 1440.0)
+@export_range(24.0, 128.0, 1.0) var elevator_interaction_range: float = 66.0
+@export_group("Катсцена / Выход")
+@export var open_institute_elevator_door: bool = true
 
-@export_group("Spawn Settings")
-@export var spawn_position := Vector2(175, 1250)
-@export var movement_limits := Rect2(0, 0, 2304, 1440)
+@export_group("Катсцена / Освещение")
+@export var elevator_ambient_color: Color = Color(0.80, 0.84, 0.88, 1.0)
+@export var hide_main_lights_in_elevator: bool = false
+
+@export_group("Совместимость")
+# Не удаляйте, если в старой .tscn записан параметр movement_limits.
+@export var movement_limits: Rect2 = Rect2(0.0, 0.0, 2304.0, 1440.0)
+
+@export_group("Катсцена / Поездка")
+@export_range(2.0, 90.0, 0.5) var elevator_ride_duration: float = 20.0
+@export_range(0.0, 8.0, 0.1) var elevator_camera_shake: float = 2.6
+@export var allow_elevator_skip: bool = false
+@export_range(0.1, 2.0, 0.05) var elevator_fade_duration: float = 0.55
+@export_multiline var elevator_arrival_message: String = "ЛИФТ ПРИБЫЛ. ЭТАЖ -9: ОТДЕЛ «КОНТУР».\nПодойдите к двери и нажмите [E]."
+@export_multiline var elevator_exit_message: String = "РАСПРЕДЕЛЕНИЕ ПОДТВЕРЖДЕНО.\nИнструкцию ищите на красном столе."
+
+@export_group("Катсцена / Реплики")
+@export_range(0.0, 90.0, 0.1) var line_1_at: float = 0.4
+@export_multiline var line_1_text: String = "— О, вы наш новенький по распределению? Отлично, теперь наш отдел пополнился перспективным носильщиком кофе."
+@export_range(0.0, 90.0, 0.1) var line_2_at: float = 3.4
+@export_multiline var line_2_text: String = "— Хватит ныть, это шутка, у нас для этих целей есть робот. Он по должности выше вас: он из УМНОЙ техники."
+@export_range(0.0, 90.0, 0.1) var line_3_at: float = 6.6
+@export_multiline var line_3_text: String = "— Инструкцию и технику безопасности найдёте на красном столе."
+@export_range(1.0, 15.0, 0.5) var dialogue_show_seconds: float = 3.1
 
 @onready var guard = $Guard
 @onready var map = $Indoor
@@ -52,12 +91,14 @@ const ITEM_POSITIONS := [
 @onready var vitals_label: Label = $HUD/VitalPanel/Vitals
 @onready var phase_label: Label = $HUD/PhasePanel/Phase
 
-var cabin_light: PointLight2D
+var transition_layer: CanvasLayer
+var transition_veil: ColorRect
 var phase := "ELEVATOR"
 var elevator_arrived := false
 var elevator_ride_time := 0.0
 var elevator_floor := 1
 var elevator_line_index := 0
+var elevator_leaving := false
 var phase_timer := 0.0
 var fade_timer := 0.0
 var radio_timer := 0.0
@@ -89,13 +130,38 @@ var monster_sprite: Sprite2D
 var scientists_caught := 0
 var scientists_total := 0
 
+# Чёрная заливка экрана создаётся кодом, никакие узлы в сцене не нужны.
+func _create_transition_overlay() -> void:
+	transition_layer = CanvasLayer.new()
+	transition_layer.name = "ElevatorFade"
+	transition_layer.layer = 90
+	add_child(transition_layer)
+	transition_veil = ColorRect.new()
+	transition_veil.name = "Fade"
+	transition_veil.color = Color.BLACK
+	transition_veil.modulate.a = 0.0
+	transition_veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	transition_layer.add_child(transition_veil)
+	transition_veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+func _elevator_script_lines() -> Array[Dictionary]:
+	var lines: Array[Dictionary] = [
+		{"at": line_1_at, "text": line_1_text},
+		{"at": line_2_at, "text": line_2_text},
+		{"at": line_3_at, "text": line_3_text},
+	]
+	lines.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a["at"]) < float(b["at"]))
+	return lines
+
 func _ready() -> void:
 	randomize()
 	guard.died.connect(_death)
 	guard.health = 3
 	guard.ammo = 0
 	guard.weapon_enabled = false
-	guard.travel_to(spawn_position, movement_limits)
+	# Всё происходит в main_indoor.tscn, без смены сцены.
+	_create_transition_overlay()
+	guard.travel_to(cabin_spawn_position, cabin_camera_bounds)
 	guard.get_node("Camera2D").zoom = Vector2(1, 1)
 	guard.active = false  # герой стоит в кабине, пока лифт не приедет
 	for info in ITEM_POSITIONS:
@@ -107,13 +173,6 @@ func _ready() -> void:
 		$Collectibles.add_child(sprite)
 		pickups[info["id"]] = sprite
 	
-	cabin_light = PointLight2D.new()
-	cabin_light.texture = load("res://assets/lighting/radial_light.png")
-	cabin_light.texture_scale = 1.6
-	cabin_light.color = Color(1.0, 0.92, 0.75)
-	cabin_light.energy = 1.1
-	cabin_light.position = guard.global_position
-	add_child(cabin_light)	
 	_say("ЛИФТ / СЕКРЕТНЫЙ ИНСТИТУТ / 1987\nСпуск на рабочий уровень...", 3.0)
 	_refresh()
 
@@ -169,8 +228,9 @@ func _process(delta: float) -> void:
 
 func _update_visuals(_delta: float) -> void:
 	var at_night: bool = phase in NIGHT_PHASES
-	cabin_light.visible = phase == "ELEVATOR"
-	map.get_node("Lights").visible = phase != "ELEVATOR"
+	var map_lights: CanvasItem = map.get_node_or_null("Lights") as CanvasItem
+	if map_lights != null:
+		map_lights.visible = phase != "ELEVATOR" or not hide_main_lights_in_elevator
 	if at_night:
 		ambient.color = Color(0.19, 0.27, 0.40, 1.0)
 		if phase == "NIGHT2":
@@ -183,7 +243,7 @@ func _update_visuals(_delta: float) -> void:
 		map.get_node("Lights").modulate = Color(0.55, 0.45, 0.45, 1)
 	elif phase == "ELEVATOR":
 		var flicker: float = 0.03 if not elevator_arrived and int(Time.get_ticks_msec() / 90) % 11 == 0 else 0.0
-		ambient.color = Color(0.07 + flicker, 0.08 + flicker, 0.10 + flicker, 1.0)
+		ambient.color = elevator_ambient_color.lightened(flicker)
 		guard.get_node("Flashlight").energy = 0.0
 	elif phase == "PANIC":
 		ambient.color = Color(0.74, 0.47, 0.47, 1) if int(Time.get_ticks_msec() / 550) % 2 == 0 else Color(0.73, 0.77, 0.73, 1)
@@ -200,34 +260,53 @@ func _update_visuals(_delta: float) -> void:
 func _update_elevator_ride(delta: float) -> void:
 	elevator_ride_time += delta
 	var t: float = elevator_ride_time
-	var progress: float = clampf(t / ELEVATOR_RIDE_DURATION, 0.0, 1.0)
+	var progress: float = clampf(t / elevator_ride_duration, 0.0, 1.0)
 	var camera: Camera2D = guard.get_node("Camera2D")
-	# Тряска кабины: сильная в начале, затихает при торможении.
-	var shake: float = lerpf(2.6, 0.0, smoothstep(0.65, 1.0, progress))
+	# Лёгкая вибрация. Сила тряски меняется в Inspector.
+	var shake: float = lerpf(elevator_camera_shake, 0.0, smoothstep(0.65, 1.0, progress))
 	camera.offset = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * shake
 	elevator_floor = 1 + mini(8, int(progress * 9.0))
-	# Реплики старшего сотрудника по времени.
-	while elevator_line_index < ELEVATOR_LINES.size() and t >= float(ELEVATOR_LINES[elevator_line_index]["at"]):
-		_say(str(ELEVATOR_LINES[elevator_line_index]["text"]), 3.1)
+	var lines: Array[Dictionary] = _elevator_script_lines()
+	while elevator_line_index < lines.size() and t >= float(lines[elevator_line_index]["at"]):
+		var line_text: String = str(lines[elevator_line_index]["text"])
+		if not line_text.is_empty():
+			_say(line_text, dialogue_show_seconds)
 		elevator_line_index += 1
-	if t >= ELEVATOR_RIDE_DURATION:
+	if t >= elevator_ride_duration:
 		elevator_arrived = true
 		camera.offset = Vector2.ZERO
 		guard.active = true
-		_say("ЛИФТ ПРИБЫЛ. ЭТАЖ -9: ОТДЕЛ «КОНТУР».\nДвери разблокированы. Подойдите к ним и нажмите [E].", 8.0)
+		_say(elevator_arrival_message, 7.0)
 
 func _open_elevator_door() -> void:
-	phase = "INTRO"
-	$ElevatorDoor/Collision.set_deferred("disabled", true)
-	var door: Sprite2D = $ElevatorDoor/Visual
-	var tween := create_tween()
-	tween.tween_property(door, "scale:x", 0.0, 0.9).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-	tween.tween_callback(_finish_door_open)
-	_say("ДВЕРИ ЛИФТА ОТКРЫВАЮТСЯ.\nРАСПРЕДЕЛЕНИЕ ПОДТВЕРЖДЕНО. Инструкцию ищите на красном столе.", 9.0)
+	if elevator_leaving or not elevator_arrived:
+		return
+	elevator_leaving = true
+	guard.active = false
+	# Затемнение создано программно в _ready().
+	var transition: Tween = create_tween()
+	transition.tween_property(transition_veil, "modulate:a", 1.0, elevator_fade_duration)
+	transition.tween_callback(_transfer_from_cabin)
+	transition.tween_property(transition_veil, "modulate:a", 0.0, elevator_fade_duration)
+	transition.tween_callback(_finish_elevator_exit)
 
-func _finish_door_open() -> void:
-	$ElevatorDoor/Visual.visible = false
-	$ElevatorDoor/Visual.scale.x = 1.0
+func _transfer_from_cabin() -> void:
+	phase = "INTRO"
+	guard.travel_to(institute_arrival_position, institute_camera_bounds)
+	guard.get_node("Camera2D").offset = Vector2.ZERO
+	# Дверь на карте необязательна: отсутствующий узел больше не вызывает ошибки.
+	if open_institute_elevator_door:
+		var door_collision: CollisionShape2D = get_node_or_null("ElevatorDoor/Collision") as CollisionShape2D
+		if door_collision != null:
+			door_collision.set_deferred("disabled", true)
+		var door_visual: CanvasItem = get_node_or_null("ElevatorDoor/Visual") as CanvasItem
+		if door_visual != null:
+			door_visual.visible = false
+
+func _finish_elevator_exit() -> void:
+	guard.active = true
+	elevator_leaving = false
+	_say(elevator_exit_message, 8.0)
 
 func _say(text: String, duration: float = 6.0) -> void:
 	radio_label.text = text
@@ -248,7 +327,12 @@ func _unhandled_input(event: InputEvent) -> void:
 func _closest_action() -> Dictionary:
 	if is_hiding:
 		return {"name":"locker", "pos":guard.global_position, "label":"Выйти из шкафа"}
-	if phase == "ELEVATOR" and not elevator_arrived:
+	if phase == "ELEVATOR":
+		if not elevator_arrived or elevator_leaving:
+			return {}
+		var door_at: Vector2 = cabin_door_position
+		if guard.global_position.distance_to(door_at) <= elevator_interaction_range:
+			return {"name": "elevator", "pos": door_at, "label": "Открыть двери лифта"}
 		return {}
 	var best := 82.0
 	var entry: Dictionary = {}
@@ -260,26 +344,19 @@ func _closest_action() -> Dictionary:
 		if dist < best:
 			best = dist
 			entry = {"name":"pickup", "key":k, "pos":node.global_position, "label":"Подобрать предмет"}
-	if entry.is_empty():
-		for zone in get_tree().get_nodes_in_group("interactables"):
-			if not zone.player_inside:
-				continue
-			var action: String = zone.action
-			if action == "elevator" and phase != "ELEVATOR":
-				continue
-			if phase == "ELEVATOR" and action != "elevator":
-				continue
-			var dist: float = guard.global_position.distance_to(zone.global_position)
-			if entry.is_empty() or dist < best:
-				best = dist
-				entry = {"name": action, "pos": zone.global_position, "label": zone.label, "node": zone}
+	for obj in INTERACTABLES:
+		var dist: float = guard.global_position.distance_to(obj["pos"])
+		if dist < best:
+			best = dist
+			entry = obj
 	return entry
 
 func _interact() -> void:
 	if phase == "RESULT":
 		return
 	if phase == "ELEVATOR" and not elevator_arrived:
-		elevator_ride_time = maxf(elevator_ride_time, ELEVATOR_RIDE_DURATION)  # пропуск
+		if allow_elevator_skip:
+			elevator_ride_time = elevator_ride_duration
 		return
 	var entry := _closest_action()
 	if entry.is_empty():
@@ -288,7 +365,6 @@ func _interact() -> void:
 	match key:
 		"elevator":
 			_open_elevator_door()
-		"inscription_glass": _say(" НАДПИСЬ: ТЕБЕ ОТКРЫТЫ ВСЕ ДВЕРИ ЭТОГО МИРА \n *Кстати, почему там красная инструкция?*", 6.0)
 		"pickup":
 			var item_id: String = str(entry["key"])
 			var item_kind: String = ""
@@ -308,7 +384,7 @@ func _interact() -> void:
 		"red":
 			has_manual = true
 			_say("ИНСТРУКЦИЯ 12-Б: A=04, Б=07, В=02; выключить канал обратной связи.\nПожалуйста, прочтите это ДО катастрофы. Форма ознакомления потеряна.", 8.0)
-		"welder": _say("Дверь намертво заварена... Какой хороший шов!", 6.0)
+		"welder": _say("НАДПИСЬ НА СТЕКЛЕ: «Тебе открыты все двери».\nПо факту дверь заварена намертво.", 6.0)
 		"robot": _say("Кофейный робот / сварщик дверей. ИИ второго класса.\nВаш непосредственный руководитель.", 6.0)
 		"teleport": _say("— Телепортации не существует! Это декорация для инвесторов!", 5.0)
 		"super":
@@ -367,10 +443,7 @@ func _interact() -> void:
 				_say("СИСТЕМА КОД: отклонение исправлено.\nВ архиве Воркуты-5 за 1986 год обнаружена недоступная запись.", 7.0)
 			else:
 				_say("Архив Воркута-5 / 1986. Данные засекречены.\nВнимание: оператор отмечен как восприимчивый к Коду.", 7.0)
-		_:
-			var zone = entry.get("node")
-			if zone != null and zone.text != "":
-				_say(zone.text, zone.duration)
+
 func _open_supercomputer() -> void:
 	if computer_open:
 		return
@@ -603,7 +676,7 @@ func _refresh() -> void:
 		objective_label.text = "[E] " + str(entry["label"])
 	else:
 		match phase:
-			"ELEVATOR": objective_label.text = "Открыть двери лифта" if elevator_arrived else "Спуск: этаж -%d  ([E] — пропустить)" % elevator_floor
+			"ELEVATOR": objective_label.text = "Открыть двери лифта" if elevator_arrived else ("Спуск: этаж -%d  ([E] — пропустить)" if allow_elevator_skip else "Спуск: этаж -%d") % elevator_floor
 			"INTRO": objective_label.text = "Найти инструкцию"
 			"PANIC": objective_label.text = "Собрать припасы"
 			"NIGHT1", "NIGHT3": objective_label.text = "Пережить ночь"

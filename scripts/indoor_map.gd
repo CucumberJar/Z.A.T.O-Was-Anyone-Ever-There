@@ -18,7 +18,6 @@ func _ready() -> void:
 		push_error("Z.A.T.O.: The tile map has no saved cells. Edit indoor_institute.tscn and save.")
 		return
 	_build_navigation()
-	_build_wall_collisions()
 
 func _equipment_blocks(cell: Vector2i) -> bool:
 	# The desk papers and elevator floor dressing remain decorative.
@@ -53,28 +52,6 @@ func _build_navigation() -> void:
 		for x in range(map_region.position.x, map_region.end.x):
 			var cell := Vector2i(x, y)
 			navigation.set_point_solid(cell, not is_walkable(cell))
-
-func _build_wall_collisions() -> void:
-	# One collision rectangle per consecutive solid run. Uses the same
-	# cells as A*, so edited walls and furniture affect both systems.
-	for child in structure.get_children():
-		child.queue_free()
-	for y in range(map_region.position.y, map_region.end.y):
-		var x: int = map_region.position.x
-		while x < map_region.end.x:
-			var cell := Vector2i(x, y)
-			if is_walkable(cell):
-				x += 1
-				continue
-			var start_x := x
-			while x < map_region.end.x and not is_walkable(Vector2i(x, y)):
-				x += 1
-			var shape := RectangleShape2D.new()
-			shape.size = Vector2(float(x - start_x) * CELL, CELL)
-			var collision := CollisionShape2D.new()
-			collision.position = Vector2((start_x + x) * CELL / 2.0, (y + 0.5) * CELL)
-			collision.shape = shape
-			structure.add_child(collision)
 
 func path_to(start_position: Vector2, end_position: Vector2) -> PackedVector2Array:
 	if navigation == null:
