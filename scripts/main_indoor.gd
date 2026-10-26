@@ -687,7 +687,6 @@ func _trigger_electro_ambush() -> void:
 	# The anomaly manifests at the electrical panel, so the key story beat
 	# cannot be skipped by pathfinding or by the NPC-targeting logic.
 	hunter.global_position = guard.global_position + Vector2(18.0, 0.0)
-	hunter.active = false
 	_say("ПИТАНИЕ ВОССТАНОВЛЕНО.\nЩелчок за спиной. Аномалия уже в электрощитовой.", 3.0)
 	if has_node("HUD"):
 		$HUD.visible = false
