@@ -48,6 +48,20 @@ const TIMED_PHASES := ["PANIC", "NIGHT1", "DAY2", "SORTIE", "NIGHT2", "DAY3", "N
 @export_range(0.0, 90.0, 0.1) var line_2_at: float = 13.0
 @export_range(0.0, 90.0, 0.1) var line_3_at: float = 24.5
 
+@export_group("Учёные")
+# Где стоят учёные у компьютера: смещения от центра узла Computer. Если людей больше, чем смещений, берутся по кругу.
+@export var scientist_work_offsets: Array[Vector2] = [Vector2(-200.0, 110.0), Vector2(-100.0, 120.0), Vector2(0.0, 110.0), Vector2(100.0, 120.0), Vector2(200.0, 110.0)]
+# Куда сбегаются учёные, когда гаснет свет (по умолчанию — кабинет).
+@export var scientist_gather_point: Vector2 = Vector2(984.0, 1008.0)
+@export_group("Ночь 1 / Охотники")
+@export_range(1, 8) var night_hunter_count: int = 3
+@export_range(1, 20) var night_hunter_health: int = 4
+@export_range(0.0, 30.0, 0.5) var night_hunter_first_delay: float = 8.0
+@export_range(1.0, 30.0, 0.5) var night_hunter_interval: float = 4.0
+@export var night_hunter_spawn_points: Array[Vector2] = [Vector2(1944.0, 840.0), Vector2(1944.0, 408.0)]
+@export_range(0, 99) var night_start_ammo: int = 24
+@export_range(0.0, 5.0, 0.1) var blackout_duration: float = 1.4
+
 @onready var guard = $Guard
 @onready var map = $Indoor
 @onready var ambient: CanvasModulate = $Ambient
@@ -97,6 +111,14 @@ var monster_mode := false
 var monster_sprite: Sprite2D
 var scientists_caught := 0
 var scientists_total := 0
+var scientists_killed := 0
+var scientists_spawned := false
+var scientists_panic_pending := false
+var scientists_node: Node2D
+var blackout_timer := 0.0
+var hunters_to_spawn := 0
+var hunters_spawned := 0
+var hunter_spawn_timer := 0.0
 
 # Чёрная заливка экрана создаётся кодом, никакие узлы в сцене не нужны.
 func _create_transition_overlay() -> void:
@@ -157,8 +179,10 @@ func _process(delta: float) -> void:
 	if radio_timer <= 0.0 and phase != "RESULT":
 		radio_label.text = ""
 	alarm_flash = maxf(0.0, alarm_flash - delta)
+	blackout_timer = maxf(0.0, blackout_timer - delta)
 	if phase == "RESULT":
 		return
+	_update_hunter_wave(delta)
 	if phase == "ELEVATOR" and not elevator_arrived:
 		_update_elevator_ride(delta)
 	if phase in TIMED_PHASES:
@@ -199,6 +223,10 @@ func _update_visuals(_delta: float) -> void:
 			ambient.color = Color(0.17, 0.34, 0.22, 1.0)  # зеленоватый «терминальный» оттенок
 		guard.get_node("Flashlight").energy = 1.25 if not is_hiding else 0.0
 		map.get_node("Lights").modulate = Color(0.48, 0.55, 0.62, 1)
+		if blackout_timer > 0.0 and int(blackout_timer * 12.0) % 4 != 0:
+			# Свет вырубается: несколько мерцаний и полная темнота.
+			ambient.color = Color(0.03, 0.04, 0.07, 1.0)
+			map.get_node("Lights").modulate = Color(0.06, 0.06, 0.08, 1)
 	elif phase == "SORTIE":
 		ambient.color = Color(0.35, 0.12, 0.12, 1.0)
 		guard.get_node("Flashlight").energy = 1.25
@@ -253,6 +281,7 @@ func _open_elevator_door() -> void:
 
 func _transfer_from_cabin() -> void:
 	phase = "INTRO"
+	_spawn_scientists()
 	guard.travel_to(institute_arrival_position, institute_camera_bounds)
 	guard.get_node("Camera2D").offset = Vector2.ZERO
 	# Дверь на карте необязательна: отсутствующий узел больше не вызывает ошибки.
@@ -377,27 +406,160 @@ func _close_computer_interface() -> void:
 	guard.active = true
 	$HUD.visible = true
 	$HUD.set_process_unhandled_key_input(true)
+	# Паника началась, пока терминал был открыт: учёные бегут на глазах у игрока.
+	if scientists_panic_pending:
+		scientists_panic_pending = false
+		_scientists_panic()
 
 func _on_computer_cancelled() -> void:
 	_close_computer_interface()
 	_say("ПРОТОКОЛ ЗАПУСКА ОТМЕНЁН. ВЕДОМСТВО НИЧЕГО НЕ ЗАМЕТИЛО.", 4.0)
 
+# Игрок подтвердил сбой (BSOD) — терминал закрывается. Без этого обработчика
+# интерфейс оставался заблокированным: HUD скрыт, игрок неактивен.
+func _on_computer_failed(_feedback_on: bool) -> void:
+	_close_computer_interface()
+
 func _start_panic() -> void:
 	phase = "PANIC"
 	guard.weapon_enabled = false
 	_say("СУПЕРКОМПЬЮТЕР: 99.99% ... BSOD.\nТРЕВОГА! ВОЗМОЖНО САМОУНИЧТОЖЕНИЕ КОМПЛЕКСА", 11.0)
+	if computer_open:
+		scientists_panic_pending = true
+	else:
+		_scientists_panic()
 
 func _start_first_night() -> void:
 	phase_timer = NIGHT_DURATION
-	phase = "PANIC"
+	phase = "NIGHT1"
+	night_number = 1
 	guard.weapon_enabled = true
+	if guard.ammo < night_start_ammo:
+		guard.ammo = night_start_ammo
+	# Свет гаснет, учёные сбегаются в одну точку, а охотники идут за ними по очереди.
+	blackout_timer = blackout_duration
 	_say("ИНТЕРКОМ:\n ВНИМАНИЕ!!! ВКЛЮЧЕН РЕЖИМ ЧС, в соответствии с ГОСТ1487, электричество будет отключено для нагнетания атмосферы", 12.0)
-	if guard.ammo < 4:
-		guard.ammo = 4
-		
+	_gather_scientists()
+	hunters_to_spawn = night_hunter_count
+	hunters_spawned = 0
+	hunter_spawn_timer = night_hunter_first_delay
+
+# --- Учёные и охотники первой ночи -------------------------------------------
+
+func _computer_anchor() -> Vector2:
+	var computer_shape: Node2D = get_node_or_null("Computer/CollisionShape2D") as Node2D
+	return computer_shape.global_position if computer_shape != null else Vector2(1215.0, 1890.0)
+
+# Учёные ждут игрока в комнате с компьютером.
+func _spawn_scientists() -> void:
+	if scientists_spawned or map == null:
+		return
+	scientists_spawned = true
+	scientists_node = Node2D.new()
+	scientists_node.name = "Scientists"
+	add_child(scientists_node)
+	var anchor: Vector2 = _computer_anchor()
+	var waypoints: Array = _build_scientist_waypoints(anchor)
+	var names: Array = SCIENTIST_NAMES.duplicate()
+	names.shuffle()
+	for i in SCIENTIST_COUNT:
+		var offset := Vector2(float(i) * 90.0 - 180.0, 110.0)
+		if not scientist_work_offsets.is_empty():
+			offset = scientist_work_offsets[i % scientist_work_offsets.size()]
+		var scientist = SCIENTIST_SCRIPT.new()
+		scientist.setup(map, guard, waypoints, str(names[i % names.size()]), anchor)
+		scientist.died.connect(_on_scientist_died)
+		scientists_node.add_child(scientist)
+		scientist.global_position = map.nearest_walkable_point(anchor + offset)
+	scientists_total = SCIENTIST_COUNT
+
+# Точки, между которыми мечутся учёные в панике: достижимые из комнаты с компьютером и разбросанные по карте.
+func _build_scientist_waypoints(origin: Vector2) -> Array:
+	var points: Array = []
+	var region: Rect2i = map.map_region
+	if region.size.x <= 0 or region.size.y <= 0:
+		return points
+	var attempts := 0
+	var path_checks := 0
+	while points.size() < 10 and attempts < 600 and path_checks < 90:
+		attempts += 1
+		var cell := Vector2i(randi_range(region.position.x, region.end.x - 1), randi_range(region.position.y, region.end.y - 1))
+		if not map.is_walkable(cell):
+			continue
+		var point := Vector2(cell.x * 48.0 + 24.0, cell.y * 48.0 + 24.0)
+		if point.distance_to(origin) < 400.0:
+			continue
+		var crowded := false
+		for other in points:
+			if point.distance_to(other) < 330.0:
+				crowded = true
+				break
+		if crowded:
+			continue
+		path_checks += 1
+		if map.path_to(origin, point).size() == 0:
+			continue  # отрезанная от комнаты зона (например, кабина лифта)
+		points.append(point)
+	return points
+
+func _scientists_panic() -> void:
+	get_tree().call_group("scientists", "start_panic")
+
+func _gather_scientists() -> void:
+	var living: Array = get_tree().get_nodes_in_group("scientists")
+	var center: Vector2 = scientist_gather_point
+	if map != null:
+		center = map.nearest_walkable_point(scientist_gather_point)
+	for i in living.size():
+		living[i].start_gather(center, i, living.size())
+
+func _on_scientist_died(scientist) -> void:
+	scientists_killed += 1
+	var left: int = scientists_total - scientists_killed
+	if left <= 0:
+		_say("ПОТЕРЯНО: %s.\nУчёных больше нет. Охотники ищут, кого ещё уволить." % scientist.display_name, 7.0)
 	else:
-		_spawn_hunter()
+		_say("ПОТЕРЯНО: %s.\nСотрудник исключён из штатного расписания. Осталось: %d." % [scientist.display_name, left], 5.0)
+
+# Охотники первой ночи выходят по одному и идут за учёными.
+func _update_hunter_wave(delta: float) -> void:
+	if hunters_to_spawn <= 0 or phase != "NIGHT1" or computer_open:
+		return
+	hunter_spawn_timer -= delta
+	if hunter_spawn_timer > 0.0:
+		return
+	hunters_to_spawn -= 1
+	hunter_spawn_timer = night_hunter_interval
+	_spawn_wave_hunter()
+
+func _spawn_wave_hunter() -> void:
+	var hunter = HUNTER_SCENE.instantiate()
+	hunter.player = guard
+	hunter.map = map
+	hunter.fortification_level = built_barricades
+	hunter.max_health = night_hunter_health  # в отличие от обычной угрозы этих можно убить
+	hunter.hunts_scientists = true
+	hunter.touched_player.connect(_hunter_hit)
+	hunter.killed.connect(_on_wave_hunter_killed)
+	$Hunters.add_child(hunter)
+	if night_hunter_spawn_points.is_empty():
+		hunter.global_position = Vector2(1944.0, 840.0)
+	else:
+		hunter.global_position = night_hunter_spawn_points[hunters_spawned % night_hunter_spawn_points.size()]
+	hunters_spawned += 1
+	if hunters_spawned == 1:
 		_say("HR: В целях экологии свет выключен.\nКого съедят — тот будет уволен. Ваш HR ♥", 10.0)
+
+func _on_wave_hunter_killed(_hunter) -> void:
+	if hunters_to_spawn > 0:
+		return
+	for other in $Hunters.get_children():
+		if not other.dying:
+			return
+	if scientists_killed == 0:
+		_say("Охотники уничтожены. Все учёные целы — на вас смотрят как на героя.", 7.0)
+	else:
+		_say("Охотники уничтожены. Слишком поздно для тех, кого уже уволили.", 7.0)
 
 func _spawn_hunter() -> void:
 	var hunter = HUNTER_SCENE.instantiate()
@@ -500,6 +662,7 @@ func _build_barrier() -> void:
 		hunter.fortification_level = built_barricades
 
 func _clear_hunters() -> void:
+	hunters_to_spawn = 0
 	for h in $Hunters.get_children():
 		h.queue_free()
 
