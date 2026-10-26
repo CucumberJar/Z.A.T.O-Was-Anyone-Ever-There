@@ -16,6 +16,10 @@ run/main_scene="res://scenes/ui/start_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://assets/icon.png"
 
+[autoload]
+
+Quests="*uid://bs3i3iitfc5gp"
+
 [display]
 
 window/size/viewport_width=640

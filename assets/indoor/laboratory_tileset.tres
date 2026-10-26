@@ -2,8 +2,9 @@
 
 [ext_resource type="Texture2D" uid="uid://baacc4qdcpbqg" path="res://assets/indoor/bunker_architecture_48.png" id="1_arch"]
 [ext_resource type="Texture2D" uid="uid://m6i1ylblb4js" path="res://assets/indoor/bunker_equipment_48.png" id="2_props"]
-[ext_resource type="Texture2D" uid="uid://0xf7ma3ymsul" path="res://assets/indoor/sprites1.png" id="3_3pl5c"]
+[ext_resource type="Texture2D" uid="uid://o7oevniui1uq" path="res://assets/indoor/sprites1.png" id="3_3pl5c"]
 [ext_resource type="Texture2D" uid="uid://b8vdsi711rclb" path="res://assets/indoor/flow.png" id="3_7o5fo"]
+[ext_resource type="Texture2D" uid="uid://c546g38r5fcax" path="res://assets/indoor/Button1.png" id="4_gnhll"]
 
 [sub_resource type="TileSetAtlasSource" id="Atlas_Architecture"]
 texture = ExtResource("1_arch")
@@ -208,6 +209,94 @@ texture_region_size = Vector2i(48, 48)
 0:5/0 = 0
 3:4/0 = 0
 3:3/0 = 0
+4:4/0 = 0
+4:3/0 = 0
+5:3/0 = 0
+5:4/0 = 0
+2:5/0 = 0
+8:0/0 = 0
+8:1/0 = 0
+9:1/0 = 0
+9:2/0 = 0
+10:2/0 = 0
+10:3/0 = 0
+11:3/0 = 0
+12:3/0 = 0
+13:3/0 = 0
+13:4/0 = 0
+13:2/0 = 0
+13:1/0 = 0
+13:0/0 = 0
+12:0/0 = 0
+11:0/0 = 0
+11:1/0 = 0
+10:1/0 = 0
+11:2/0 = 0
+10:0/0 = 0
+9:0/0 = 0
+7:1/0 = 0
+6:1/0 = 0
+5:1/0 = 0
+5:0/0 = 0
+6:0/0 = 0
+8:2/0 = 0
+8:3/0 = 0
+7:4/0 = 0
+7:3/0 = 0
+9:3/0 = 0
+12:2/0 = 0
+12:1/0 = 0
+17:1/0 = 0
+16:1/0 = 0
+15:1/0 = 0
+15:2/0 = 0
+14:2/0 = 0
+14:1/0 = 0
+14:0/0 = 0
+15:0/0 = 0
+16:0/0 = 0
+18:0/0 = 0
+17:0/0 = 0
+8:4/0 = 0
+9:4/0 = 0
+10:4/0 = 0
+11:4/0 = 0
+12:4/0 = 0
+20:1/0 = 0
+19:0/0 = 0
+18:1/0 = 0
+19:1/0 = 0
+20:0/0 = 0
+2:7/0 = 0
+1:7/0 = 0
+1:6/0 = 0
+2:6/0 = 0
+0:7/0 = 0
+0:6/0 = 0
+3:6/0 = 0
+3:7/0 = 0
+4:7/0 = 0
+5:7/0 = 0
+5:6/0 = 0
+4:6/0 = 0
+4:5/0 = 0
+3:5/0 = 0
+5:5/0 = 0
+10:5/0 = 0
+9:5/0 = 0
+8:5/0 = 0
+7:5/0 = 0
+6:5/0 = 0
+6:4/0 = 0
+6:3/0 = 0
+6:7/0 = 0
+6:6/0 = 0
+9:6/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_x8ewc"]
+texture = ExtResource("4_gnhll")
+texture_region_size = Vector2i(48, 48)
+0:0/0 = 0
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_6qnne"]
 resource_local_to_scene = true
@@ -231,3 +320,4 @@ sources/1 = SubResource("Atlas_Equipment")
 sources/5 = SubResource("TileSetAtlasSource_7o5fo")
 sources/6 = SubResource("TileSetAtlasSource_3pl5c")
 sources/2 = SubResource("TileSetAtlasSource_gnhll")
+sources/3 = SubResource("TileSetAtlasSource_x8ewc")

@@ -36,20 +36,7 @@ const ITEM_POSITIONS := [
 	{"id":"I", "kind":"metal", "pos":Vector2(1608, 936)},
 	{"id":"J", "kind":"medkit", "pos":Vector2(1944, 840)},
 ]
-const INTERACTABLES := [
-	{"name":"elevator", "pos":Vector2(250, 1300), "label":"Выйти из лифта"},
-	{"name":"blue", "pos":Vector2(360, 408), "label":"Синий стол"},
-	{"name":"red", "pos":Vector2(1032, 408), "label":"Красный стол / инструкция"},
-	{"name":"welder", "pos":Vector2(936, 600), "label":"Заваренная дверь"},
-	{"name":"robot", "pos":Vector2(840, 840), "label":"Кофейный робот"},
-	{"name":"teleport", "pos":Vector2(1944, 888), "label":"Телепорт"},
-	{"name":"super", "pos":Vector2(2064, 456), "label":"Суперкомпьютер"},
-	{"name":"reset", "pos":Vector2(2112, 528), "label":"Кнопка RESET"},
-	{"name":"office", "pos":Vector2(984, 1248), "label":"Рабочий стол / укрепления"},
-	{"name":"locker", "pos":Vector2(1128, 1248), "label":"Шкаф"},
-	{"name":"generator", "pos":Vector2(1944, 1176), "label":"Энергоузел / щиток"},
-	{"name":"terminal", "pos":Vector2(1560, 456), "label":"Служебный терминал"},
-]
+
 
 @export_group("Spawn Settings")
 @export var spawn_position := Vector2(175, 1250)
@@ -273,15 +260,19 @@ func _closest_action() -> Dictionary:
 		if dist < best:
 			best = dist
 			entry = {"name":"pickup", "key":k, "pos":node.global_position, "label":"Подобрать предмет"}
-	for obj in INTERACTABLES:
-		if obj["name"] == "elevator" and phase != "ELEVATOR":
-			continue
-		if phase == "ELEVATOR" and obj["name"] != "elevator":
-			continue
-		var dist: float = guard.global_position.distance_to(obj["pos"])
-		if dist < best:
-			best = dist
-			entry = obj
+	if entry.is_empty():
+		for zone in get_tree().get_nodes_in_group("interactables"):
+			if not zone.player_inside:
+				continue
+			var action: String = zone.action
+			if action == "elevator" and phase != "ELEVATOR":
+				continue
+			if phase == "ELEVATOR" and action != "elevator":
+				continue
+			var dist: float = guard.global_position.distance_to(zone.global_position)
+			if entry.is_empty() or dist < best:
+				best = dist
+				entry = {"name": action, "pos": zone.global_position, "label": zone.label, "node": zone}
 	return entry
 
 func _interact() -> void:
@@ -297,6 +288,7 @@ func _interact() -> void:
 	match key:
 		"elevator":
 			_open_elevator_door()
+		"inscription_glass": _say(" НАДПИСЬ: ТЕБЕ ОТКРЫТЫ ВСЕ ДВЕРИ ЭТОГО МИРА \n *Кстати, почему там красная инструкция?*", 6.0)
 		"pickup":
 			var item_id: String = str(entry["key"])
 			var item_kind: String = ""
@@ -316,7 +308,7 @@ func _interact() -> void:
 		"red":
 			has_manual = true
 			_say("ИНСТРУКЦИЯ 12-Б: A=04, Б=07, В=02; выключить канал обратной связи.\nПожалуйста, прочтите это ДО катастрофы. Форма ознакомления потеряна.", 8.0)
-		"welder": _say("НАДПИСЬ НА СТЕКЛЕ: «Тебе открыты все двери».\nПо факту дверь заварена намертво.", 6.0)
+		"welder": _say("Дверь намертво заварена... Какой хороший шов!", 6.0)
 		"robot": _say("Кофейный робот / сварщик дверей. ИИ второго класса.\nВаш непосредственный руководитель.", 6.0)
 		"teleport": _say("— Телепортации не существует! Это декорация для инвесторов!", 5.0)
 		"super":
@@ -375,7 +367,10 @@ func _interact() -> void:
 				_say("СИСТЕМА КОД: отклонение исправлено.\nВ архиве Воркуты-5 за 1986 год обнаружена недоступная запись.", 7.0)
 			else:
 				_say("Архив Воркута-5 / 1986. Данные засекречены.\nВнимание: оператор отмечен как восприимчивый к Коду.", 7.0)
-
+		_:
+			var zone = entry.get("node")
+			if zone != null and zone.text != "":
+				_say(zone.text, zone.duration)
 func _open_supercomputer() -> void:
 	if computer_open:
 		return
