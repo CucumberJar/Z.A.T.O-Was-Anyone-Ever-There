@@ -117,6 +117,7 @@ var scientists_panic_pending := false
 var scientists_node: Node2D
 var blackout_timer := 0.0
 var hunters_to_spawn := 0
+var electro_ambush_triggered := false
 var hunters_spawned := 0
 var hunter_spawn_timer := 0.0
 
@@ -378,8 +379,7 @@ func _interact() -> void:
 			_say(Dialogies.t("storage_door"),5.0)	
 		"electro":
 			if phase == "SORTIE":
-				_say(Dialogies.t("power_restored"), 5.0)
-				Quests.complete("sortie")
+				_trigger_electro_ambush()
 			elif phase == "DAY3":
 				quests["power"] = true
 				_say(Dialogies.t("power_restored"), 4.0)
@@ -402,14 +402,6 @@ func _interact() -> void:
 			else:
 				reset_used = true
 				Quests.complete("reset")
-			reset_used = true
-			Quests.complete("reset")
-		"easter_egg":
-			var egg: Node = entry.get("node")
-			if egg != null and egg.has_method("activate"):
-				egg.activate(self)
-			else:
-				push_warning("Пасхалка не найдена или у неё отсутствует activate()")
 		"pickup":
 			var item_id: String = str(entry["key"])
 			var item: Sprite2D = pickups[item_id]
@@ -479,10 +471,125 @@ func _start_first_night() -> void:
 	# Свет гаснет, учёные сбегаются в одну точку, а охотники идут за ними по очереди.
 	blackout_timer = blackout_duration
 	_say("ИНТЕРКОМ:\n ВНИМАНИЕ!!! ВКЛЮЧЕН РЕЖИМ ЧС, в соответствии с ГОСТ1487, электричество будет отключено для нагнетания атмосферы", 12.0)
-	if guard.ammo < 4:
-		guard.ammo = 4
-	_spawn_hunter()
-	_say("HR: В целях экологии свет выключен.\nКого съедят — тот будет уволен. Ваш HR ♥", 10.0)
+	_gather_scientists()
+	hunters_to_spawn = night_hunter_count
+	hunters_spawned = 0
+	hunter_spawn_timer = night_hunter_first_delay
+
+# --- Учёные и охотники первой ночи -------------------------------------------
+
+func _computer_anchor() -> Vector2:
+	var computer_shape: Node2D = get_node_or_null("Computer/CollisionShape2D") as Node2D
+	return computer_shape.global_position if computer_shape != null else Vector2(1215.0, 1890.0)
+
+# Учёные ждут игрока в комнате с компьютером.
+func _spawn_scientists() -> void:
+	if scientists_spawned or map == null:
+		return
+	scientists_spawned = true
+	scientists_node = Node2D.new()
+	scientists_node.name = "Scientists"
+	add_child(scientists_node)
+	var anchor: Vector2 = _computer_anchor()
+	var waypoints: Array = _build_scientist_waypoints(anchor)
+	var names: Array = SCIENTIST_NAMES.duplicate()
+	names.shuffle()
+	for i in SCIENTIST_COUNT:
+		var offset := Vector2(float(i) * 90.0 - 180.0, 110.0)
+		if not scientist_work_offsets.is_empty():
+			offset = scientist_work_offsets[i % scientist_work_offsets.size()]
+		var scientist = SCIENTIST_SCRIPT.new()
+		scientist.setup(map, guard, waypoints, str(names[i % names.size()]), anchor)
+		scientist.died.connect(_on_scientist_died)
+		scientist.caught.connect(_on_scientist_caught)
+		scientists_node.add_child(scientist)
+		scientist.global_position = map.nearest_walkable_point(anchor + offset)
+	scientists_total = SCIENTIST_COUNT
+
+# Точки, между которыми мечутся учёные в панике: достижимые из комнаты с компьютером и разбросанные по карте.
+func _build_scientist_waypoints(origin: Vector2) -> Array:
+	var points: Array = []
+	var region: Rect2i = map.map_region
+	if region.size.x <= 0 or region.size.y <= 0:
+		return points
+	var attempts := 0
+	var path_checks := 0
+	while points.size() < 10 and attempts < 600 and path_checks < 90:
+		attempts += 1
+		var cell := Vector2i(randi_range(region.position.x, region.end.x - 1), randi_range(region.position.y, region.end.y - 1))
+		if not map.is_walkable(cell):
+			continue
+		var point := Vector2(cell.x * 48.0 + 24.0, cell.y * 48.0 + 24.0)
+		if point.distance_to(origin) < 400.0:
+			continue
+		var crowded := false
+		for other in points:
+			if point.distance_to(other) < 330.0:
+				crowded = true
+				break
+		if crowded:
+			continue
+		path_checks += 1
+		if map.path_to(origin, point).size() == 0:
+			continue  # отрезанная от комнаты зона (например, кабина лифта)
+		points.append(point)
+	return points
+
+func _scientists_panic() -> void:
+	get_tree().call_group("scientists", "start_panic")
+
+func _gather_scientists() -> void:
+	var living: Array = get_tree().get_nodes_in_group("scientists")
+	var center: Vector2 = scientist_gather_point
+	if map != null:
+		center = map.nearest_walkable_point(scientist_gather_point)
+	for i in living.size():
+		living[i].start_gather(center, i, living.size())
+
+func _on_scientist_caught(scientist) -> void:
+	scientists_caught += 1
+	var left: int = scientists_total - scientists_killed - scientists_caught
+	_say("ОБЪЕКТ ЗАХВАЧЕН: %s. Осталось в комплексе: %d." % [scientist.display_name, maxi(0, left)], 4.0)
+	if monster_mode and left <= 0:
+		_finish()
+
+
+func _on_scientist_died(scientist) -> void:
+	scientists_killed += 1
+	var left: int = scientists_total - scientists_killed - scientists_caught
+	if left <= 0:
+		_say("ПОТЕРЯНО: %s.\nУчёных больше нет. Охотники ищут, кого ещё уволить." % scientist.display_name, 7.0)
+	else:
+		_say("ПОТЕРЯНО: %s.\nСотрудник исключён из штатного расписания. Осталось: %d." % [scientist.display_name, left], 5.0)
+
+# Охотники первой ночи выходят по одному и идут за учёными.
+func _update_hunter_wave(delta: float) -> void:
+	if hunters_to_spawn <= 0 or phase != "NIGHT1" or computer_open:
+		return
+	hunter_spawn_timer -= delta
+	if hunter_spawn_timer > 0.0:
+		return
+	hunters_to_spawn -= 1
+	hunter_spawn_timer = night_hunter_interval
+	_spawn_wave_hunter()
+
+func _spawn_wave_hunter() -> void:
+	var hunter = HUNTER_SCENE.instantiate()
+	hunter.player = guard
+	hunter.map = map
+	hunter.fortification_level = built_barricades
+	hunter.max_health = night_hunter_health  # в отличие от обычной угрозы этих можно убить
+	hunter.hunts_scientists = true
+	hunter.touched_player.connect(_hunter_hit)
+	hunter.killed.connect(_on_wave_hunter_killed)
+	$Hunters.add_child(hunter)
+	if night_hunter_spawn_points.is_empty():
+		hunter.global_position = Vector2(1944.0, 840.0)
+	else:
+		hunter.global_position = night_hunter_spawn_points[hunters_spawned % night_hunter_spawn_points.size()]
+	hunters_spawned += 1
+	if hunters_spawned == 1:
+		_say("HR: В целях экологии свет выключен.\nКого съедят — тот будет уволен. Ваш HR ♥", 10.0)
 
 func _on_wave_hunter_killed(_hunter) -> void:
 	if hunters_to_spawn > 0:
@@ -564,6 +671,52 @@ func _start_sortie() -> void:
 	$Hunters.add_child(hunter)
 	hunter.global_position = map.nearest_walkable_point(Vector2(1944.0, 408.0))
 	_say("АВАРИЙНОЕ ПИТАНИЕ ОТКЛЮЧЕНО.\nДоберитесь до электрощита и восстановите свет. Аномалия уже в коридоре.", 8.0)
+
+
+
+# Сюжетная сцена: восстановление питания запускает захват игрока аномалией.
+# Срабатывает только при первом взаимодействии со щитком во время SORTIE.
+func _trigger_electro_ambush() -> void:
+	if phase != "SORTIE" or electro_ambush_triggered:
+		return
+	electro_ambush_triggered = true
+	guard.velocity = Vector2.ZERO
+	computer_open = false
+	blackout_timer = maxf(blackout_timer, 1.8)
+	_clear_hunters()
+
+	var hunter = HUNTER_SCENE.instantiate()
+	hunter.player = guard
+	hunter.map = map
+	hunter.fortification_level = 0
+	hunter.face_player = true
+	hunter.hunts_scientists = false
+	hunter.touched_player.connect(_hunter_hit)
+	$Hunters.add_child(hunter)
+	# Spawn within attack range so the chase/capture is deterministic even if
+	# navigation has no valid route from the corridor to the electrical room.
+	hunter.global_position = guard.global_position + Vector2(24.0, 0.0)
+	hunter.active = true
+	guard.active = true
+	_say("ПИТАНИЕ ВОССТАНОВЛЕНО.\nЩелчок за спиной. АНОМАЛИЯ ОБНАРУЖИЛА ВАС.", 3.0)
+	if has_node("HUD"):
+		$HUD.visible = false
+	await get_tree().create_timer(0.9).timeout
+	if not is_inside_tree() or phase != "SORTIE":
+		return
+	# The anomaly catches the player in the electrical room. Keep the hunter
+	# visible through the final glitch frame, then transition to morning.
+	if is_instance_valid(hunter):
+		hunter.active = false
+		_say("ЗАХВАТ! АНОМАЛИЯ ДОТРОНУЛАСЬ ДО ВАС.\nСИГНАЛ ПОТЕРЯН.", 2.0)
+		await get_tree().create_timer(0.45).timeout
+		hunter.queue_free()
+	blackout_timer = 0.0
+	guard.active = true
+	if has_node("HUD"):
+		$HUD.visible = true
+	_say("СИГНАЛ ПОТЕРЯН.\nВы приходите в себя утром. На записи камеры — только помехи.", 8.0)
+	Quests.complete("sortie")
 
 
 func _on_sortie_timeout() -> void:
